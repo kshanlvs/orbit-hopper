@@ -226,6 +226,18 @@ class GameWorld {
     comet.velocity = len == 0 ? v : v / len * comet.speed;
     comet.position += comet.velocity * dt;
 
+    // Ramming the killer asteroid comes first: if you touch it and a rock
+    // in the same frame, Earth is saved.
+    final def = defense;
+    final killer = def?.killer;
+    if (def != null && killer != null &&
+        (killer.position - comet.position).distance < cometRadius + KillerAsteroid.radius) {
+      def.killer = null;
+      def.won = true;
+      invulnerable = double.infinity; // nothing can hurt you after saving Earth
+      events.add(WorldEvent(WorldEventType.deflect, killer.position));
+    }
+
     // Moons and asteroids are deadly (unless shielded).
     for (final p in planets) {
       for (final m in p.moons) {
@@ -238,16 +250,6 @@ class GameWorld {
       if ((a.position - comet.position).distance < cometRadius + a.radius) {
         if (_hit(DeathCause.asteroid, a.position)) return;
       }
-    }
-
-    final def = defense;
-    final killer = def?.killer;
-    if (def != null && killer != null &&
-        (killer.position - comet.position).distance < cometRadius + KillerAsteroid.radius) {
-      def.killer = null;
-      def.won = true;
-      invulnerable = double.infinity; // nothing can hurt you after saving Earth
-      events.add(WorldEvent(WorldEventType.deflect, killer.position));
     }
 
     for (final s in shields) {

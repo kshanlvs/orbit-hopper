@@ -161,6 +161,11 @@ void main() {
       for (var i = 0; i < 10 && !world.defense!.won; i++) {
         world.update(_dt);
       }
+      if (!world.defense!.won) {
+        print('STAT killer-test dead=${world.isDead} cause=${world.deathCause} mode=${world.comet.mode} '
+            'dist=${(world.comet.position - killer.position).distance} killer=${world.defense!.killer?.position} '
+            'comet=${world.comet.position}');
+      }
       expect(world.defense!.won, isTrue);
       expect(world.defense!.killer, isNull);
       // Nothing can end the run after the save.
