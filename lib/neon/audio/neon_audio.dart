@@ -101,10 +101,14 @@ class NeonAudio with WidgetsBindingObserver {
   bool _observing = false;
   bool _paused = false;
 
+  /// Tests set this: no players are created and nothing touches plugins.
+  static bool silent = false;
+
   Future<void> init({required bool sfx, required bool music, required bool haptics}) {
     sfxOn = sfx;
     musicOn = music;
-    hapticsOn = haptics;
+    hapticsOn = haptics && !silent;
+    if (silent) return Future<void>.value();
     if (!_observing) {
       WidgetsBinding.instance.addObserver(this);
       _observing = true;
@@ -175,7 +179,7 @@ class NeonAudio with WidgetsBindingObserver {
 
   Future<void> apply({required bool sfx, required bool music, required bool haptics}) async {
     sfxOn = sfx;
-    hapticsOn = haptics;
+    hapticsOn = haptics && !silent;
     if (music == musicOn) return;
     musicOn = music;
     if (music) {

@@ -68,19 +68,19 @@ class NeonHud {
   final bool ready;
 
   @override
-  bool operator ==(Object o) =>
-      o is NeonHud &&
-      o.score == score &&
-      o.distance == distance &&
-      o.multiplier == multiplier &&
-      o.chain == chain &&
-      o.chainLeft == chainLeft &&
-      o.shards == shards &&
-      o.dashCharge == dashCharge &&
-      o.dashReady == dashReady &&
-      o.dashing == dashing &&
-      o.tutorial == tutorial &&
-      o.ready == ready;
+  bool operator ==(Object other) =>
+      other is NeonHud &&
+      other.score == score &&
+      other.distance == distance &&
+      other.multiplier == multiplier &&
+      other.chain == chain &&
+      other.chainLeft == chainLeft &&
+      other.shards == shards &&
+      other.dashCharge == dashCharge &&
+      other.dashReady == dashReady &&
+      other.dashing == dashing &&
+      other.tutorial == tutorial &&
+      other.ready == ready;
 
   @override
   int get hashCode =>

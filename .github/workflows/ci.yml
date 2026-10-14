@@ -74,6 +74,7 @@ jobs:
         run: |
           mkdir -p /tmp/out
           cp analyze.txt test.txt build.txt /tmp/out/ 2>/dev/null || true
+          cp -r build/shots /tmp/out/shots 2>/dev/null || true
           cd /tmp/out
           echo "${{ github.sha }} analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}" > RESULT
           git init -q

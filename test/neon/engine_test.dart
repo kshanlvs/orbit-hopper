@@ -10,34 +10,7 @@ import 'package:orbit_hopper/neon/engine/scoring.dart';
 import 'package:orbit_hopper/neon/engine/tuning.dart';
 import 'package:orbit_hopper/neon/engine/validator.dart';
 
-/// Plays a world perfectly-enough: whenever it enters a chunk it plans a
-/// proven route from its exact state and follows it.
-class _Bot {
-  _Bot(this.world);
-
-  final NeonWorld world;
-  Chunk? _planned;
-  Set<int> _flips = {};
-  int _step = 0;
-  int replans = 0;
-  int failedPlans = 0;
-
-  void tick() {
-    final c = world.current;
-    if (!identical(c, _planned)) {
-      _planned = c;
-      _step = 0;
-      var p = RouteValidator.plan(c, world.orb.copy(), world.s, minGap: 0.12);
-      p ??= RouteValidator.plan(c, world.orb.copy(), world.s, minGap: 0.02);
-      if (p == null) failedPlans++;
-      _flips = p?.flips.toSet() ?? {};
-      replans++;
-    }
-    if (_flips.contains(_step)) world.flip();
-    _step++;
-    world.update(Tune.dt);
-  }
-}
+import 'bot.dart';
 
 void main() {
   group('scoring', () {
@@ -141,7 +114,7 @@ void main() {
 
     test('every chunk is validated, fallbacks are rare', () {
       final sw = Stopwatch()..start();
-      var chunks = 0, fallbacks = 0, validations = 0, retries = 0, peak = 0;
+      var chunks = 0, fallbacks = 0, validations = 0, retries = 0, peak = 0, gates = 0, richGates = 0;
       final roles = <ChunkRole, int>{};
       for (var seed = 1; seed <= 12; seed++) {
         final g = LevelGenerator(seed * 7919);
@@ -154,6 +127,10 @@ void main() {
             expect(h.right, lessThanOrEqualTo(c.x1), reason: c.patternId);
           }
           roles[c.role] = (roles[c.role] ?? 0) + 1;
+          if (c.riskTop != null) {
+            gates++;
+            if (c.riskShards > 0) richGates++;
+          }
         }
         chunks += g.stats.chunks;
         fallbacks += g.stats.fallbacks;
@@ -163,8 +140,9 @@ void main() {
       }
       sw.stop();
       print('STAT chunks=$chunks validations=$validations retries=$retries fallbacks=$fallbacks '
-          'peakStates=$peak msPerValidation=${(sw.elapsedMilliseconds / validations).toStringAsFixed(2)} roles=$roles');
+          'peakStates=$peak riskGates=$gates withRiskShards=$richGates msPerValidation=${(sw.elapsedMilliseconds / validations).toStringAsFixed(2)} roles=$roles');
       expect(fallbacks / chunks, lessThan(0.05));
+      expect(richGates, greaterThan(gates * 0.7), reason: 'risk lanes should usually carry a proven shard trail');
       expect(roles[ChunkRole.breakIntro] ?? 0, greaterThan(0));
       expect(roles[ChunkRole.chaseIntro] ?? 0, greaterThan(0));
     });
@@ -308,7 +286,7 @@ void main() {
       var total = 0.0;
       for (final seed in [1, 2, 3, 2026, 77777]) {
         final w = NeonWorld(seed: seed);
-        final bot = _Bot(w);
+        final bot = NeonBot(w);
         final events = <NeonEventType, int>{};
         while (w.alive && w.s < 1400) {
           bot.tick();
