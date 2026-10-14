@@ -19,8 +19,7 @@ class OrbState {
 /// Shared by the game and the route validator, so they can never disagree.
 abstract final class Physics {
   /// Resting y against the wall gravity points at.
-  static double restY(Chunk c, double x, int g) =>
-      g > 0 ? c.bot(x) - Tune.orbRadius : c.top(x) + Tune.orbRadius;
+  static double restY(Chunk c, double x, int g) => g > 0 ? c.bot(x) - Tune.orbRadius : c.top(x) + Tune.orbRadius;
 
   /// Advances [o] by one fixed step; [s] is the orb's x after the step.
   /// Returns false when the orb is crushed or hits a slab side-on.

@@ -31,4 +31,3 @@ class NeonBot {
     world.update(Tune.dt);
   }
 }
-

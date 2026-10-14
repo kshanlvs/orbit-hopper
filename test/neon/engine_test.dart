@@ -32,7 +32,9 @@ void main() {
     });
 
     test('chain breaks after the window with no good moves', () {
-      final k = ScoreKeeper()..nearMiss()..nearMiss();
+      final k = ScoreKeeper()
+        ..nearMiss()
+        ..nearMiss();
       expect(k.chain, 2);
       var broke = false;
       for (var i = 0; i < 1000 && !broke; i++) {
@@ -157,8 +159,16 @@ void main() {
           final d = i / (n - 1);
           final v = Difficulty.speed(d * 1600);
           final c = Chunk(
-            x0: 0, x1: 0, speed: v, patternId: def.id, rating: def.rating, minReaction: def.minReaction,
-            entryTop: 0, entryBot: 1, exitTop: 0, exitBot: 1,
+            x0: 0,
+            x1: 0,
+            speed: v,
+            patternId: def.id,
+            rating: def.rating,
+            minReaction: def.minReaction,
+            entryTop: 0,
+            entryBot: 1,
+            exitTop: 0,
+            exitBot: 1,
           );
           final ctx = PatternCtx(rng: rng.fork(), chunk: c, x: v * 0.45, speed: v, difficulty: d, top: 0, bot: 1);
           c.x1 = def.build(ctx) + 0.3;
@@ -173,8 +183,16 @@ void main() {
 
     test('an impossible wall is rejected', () {
       final c = Chunk(
-        x0: 0, x1: 2, speed: 2, patternId: 'wall', rating: 9, minReaction: 0.2,
-        entryTop: 0, entryBot: 1, exitTop: 0, exitBot: 1,
+        x0: 0,
+        x1: 2,
+        speed: 2,
+        patternId: 'wall',
+        rating: 9,
+        minReaction: 0.2,
+        entryTop: 0,
+        entryBot: 1,
+        exitTop: 0,
+        exitBot: 1,
         hazards: [
           Spike(x: 1, width: 0.15, height: 0.55, baseY: 1, onFloor: true),
           Spike(x: 1, width: 0.15, height: 0.55, baseY: 0, onFloor: false),
@@ -185,8 +203,16 @@ void main() {
 
     test('a spike on one wall needs a flip from that side only', () {
       final c = Chunk(
-        x0: 0, x1: 2, speed: 2, patternId: 'one', rating: 1, minReaction: 0.3,
-        entryTop: 0, entryBot: 1, exitTop: 0, exitBot: 1,
+        x0: 0,
+        x1: 2,
+        speed: 2,
+        patternId: 'one',
+        rating: 1,
+        minReaction: 0.3,
+        entryTop: 0,
+        entryBot: 1,
+        exitTop: 0,
+        exitBot: 1,
         hazards: [Spike(x: 1.2, width: 0.15, height: 0.3, baseY: 1, onFloor: true)],
       );
       final res = RouteValidator.validate(c, minGap: 0.3, rng: NeonRng(1));
@@ -198,8 +224,16 @@ void main() {
   group('physics', () {
     test('a flip crosses the corridor in about 0.2 s', () {
       final c = Chunk(
-        x0: 0, x1: 10, speed: 2, patternId: 'e', rating: 0, minReaction: 0.4,
-        entryTop: 0, entryBot: 1, exitTop: 0, exitBot: 1,
+        x0: 0,
+        x1: 10,
+        speed: 2,
+        patternId: 'e',
+        rating: 0,
+        minReaction: 0.4,
+        entryTop: 0,
+        entryBot: 1,
+        exitTop: 0,
+        exitBot: 1,
       );
       final o = OrbState(Physics.restY(c, 0, 1), 0, -1);
       var t = 0;
@@ -218,8 +252,16 @@ void main() {
 
     test('a ramp pushes a resting orb along it without killing it', () {
       final c = Chunk(
-        x0: 0, x1: 4, speed: 2, patternId: 'r', rating: 0, minReaction: 0.4,
-        entryTop: 0, entryBot: 1, exitTop: 0, exitBot: 1,
+        x0: 0,
+        x1: 4,
+        speed: 2,
+        patternId: 'r',
+        rating: 0,
+        minReaction: 0.4,
+        entryTop: 0,
+        entryBot: 1,
+        exitTop: 0,
+        exitBot: 1,
         bounds: [const BoundSeg(x0: 1, x1: 2, top0: 0, top1: 0.2, bot0: 1, bot1: 0.8)],
       );
       final o = OrbState(Physics.restY(c, 0, 1), 0, 1);

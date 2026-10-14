@@ -68,14 +68,13 @@ class LevelGenerator {
         if (cursor >= _phaseEnd) {
           _phase = _Phase.normal;
           _chaseIndex++;
-          _nextChase = _chaseIndex < Tune.chaseAt.length
-              ? Tune.chaseAt[_chaseIndex]
-              : cursor + Tune.chaseEveryAfter;
+          _nextChase = _chaseIndex < Tune.chaseAt.length ? Tune.chaseAt[_chaseIndex] : cursor + Tune.chaseEveryAfter;
           _nextBreak = math.max(_nextBreak, cursor + 35);
           _waveStep = 0;
           return _breather(role: ChunkRole.escape);
         }
-        return _patternChunk(_choose(Pool.chase, peak: true), role: ChunkRole.chaseBody, dBoost: 0.15, speedMul: Tune.chaseBoost);
+        return _patternChunk(_choose(Pool.chase, peak: true),
+            role: ChunkRole.chaseBody, dBoost: 0.15, speedMul: Tune.chaseBoost);
       case _Phase.breakTime:
         if (cursor >= _phaseEnd) {
           _phase = _Phase.normal;
@@ -187,7 +186,8 @@ class LevelGenerator {
     stats.fallbacks++;
     final fb = PatternRegistry.simplest;
     final c = _newChunk(fb, v, role: role);
-    final ctx = PatternCtx(rng: _rng.fork(), chunk: c, x: cursor + v * 0.6, speed: v, difficulty: 0, top: _top, bot: _bot);
+    final ctx =
+        PatternCtx(rng: _rng.fork(), chunk: c, x: cursor + v * 0.6, speed: v, difficulty: 0, top: _top, bot: _bot);
     c.x1 = ctx.spikes(ctx.x, 2, onFloor: _rng.chance(0.5)) + _tail;
     c.fallback = true;
     if (!_finish(c, fb)) {
@@ -222,7 +222,8 @@ class LevelGenerator {
     final d = Difficulty.level(cursor);
     for (var attempt = 0; attempt < 3; attempt++) {
       final c = _newChunk(def, v);
-      final ctx = PatternCtx(rng: _rng.fork(), chunk: c, x: cursor + v * 0.45, speed: v, difficulty: d, top: _top, bot: _bot);
+      final ctx =
+          PatternCtx(rng: _rng.fork(), chunk: c, x: cursor + v * 0.45, speed: v, difficulty: d, top: _top, bot: _bot);
       c.x1 = def.build(ctx) + _tail;
       final mid = (_top + _bot) / 2;
       final riskTop = c.riskTop!;
@@ -262,7 +263,8 @@ class LevelGenerator {
     return _patternChunk(PatternRegistry.simplest);
   }
 
-  void _shardsAlong(Chunk c, RoutePath p, int count, {required int group, bool risk = false, required double from, required double to}) {
+  void _shardsAlong(Chunk c, RoutePath p, int count,
+      {required int group, bool risk = false, required double from, required double to}) {
     if (to <= from || count <= 0) return;
     final spacing = math.max(0.16, (to - from) / (count + 0.5));
     var nextX = from + spacing * 0.5;

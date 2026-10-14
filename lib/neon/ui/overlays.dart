@@ -53,7 +53,8 @@ class NeonGameOver extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(run.cause.isEmpty ? 'RUN OVER' : run.cause, style: NeonText.glow(14, NeonColors.magenta, spacing: 4)),
+                            Text(run.cause.isEmpty ? 'RUN OVER' : run.cause,
+                                style: NeonText.glow(14, NeonColors.magenta, spacing: 4)),
                             const SizedBox(height: 4),
                             const Text('SCORE', style: NeonText.label),
                             TweenAnimationBuilder<double>(
@@ -61,16 +62,22 @@ class NeonGameOver extends StatelessWidget {
                               duration: const Duration(milliseconds: 900),
                               curve: Curves.easeOutCubic,
                               builder: (context, v, _) => FittedBox(
-                                child: Text(formatInt(v.round()), style: NeonText.glow(46, NeonColors.text, spacing: 2)),
+                                child:
+                                    Text(formatInt(v.round()), style: NeonText.glow(46, NeonColors.text, spacing: 2)),
                               ),
                             ),
-                            if (record) const _RecordBadge() else Text('BEST  ${formatInt(best)}', style: NeonText.body(13, color: NeonColors.gold)),
+                            if (record)
+                              const _RecordBadge()
+                            else
+                              Text('BEST  ${formatInt(best)}', style: NeonText.body(13, color: NeonColors.gold)),
                             if (dailyTarget != null) ...[
                               const SizedBox(height: 4),
                               Text(
                                 r?.dailyCompleted ?? false
-                                    ? 'DAILY COMPLETE ✓'
-                                    : (run.score >= dailyTarget! ? 'Daily target reached' : 'Daily target ${formatInt(dailyTarget!)}'),
+                                    ? 'DAILY COMPLETE!'
+                                    : (run.score >= dailyTarget!
+                                        ? 'Daily target reached'
+                                        : 'Daily target ${formatInt(dailyTarget!)}'),
                                 style: NeonText.body(12, color: NeonColors.gold),
                               ),
                             ],
@@ -97,9 +104,11 @@ class NeonGameOver extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            NeonButton(label: 'RETRY', icon: Icons.replay_rounded, big: true, filled: true, onTap: onRetry),
+                            NeonButton(
+                                label: 'RETRY', icon: Icons.replay_rounded, big: true, filled: true, onTap: onRetry),
                             const SizedBox(height: 10),
-                            NeonButton(label: 'MENU', icon: Icons.home_rounded, color: NeonColors.violet, onTap: onMenu),
+                            NeonButton(
+                                label: 'MENU', icon: Icons.home_rounded, color: NeonColors.violet, onTap: onMenu),
                             const SizedBox(height: 10),
                             if (r != null) ..._unlocks(r),
                           ],
@@ -131,12 +140,13 @@ class NeonGameOver extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 16),
               const SizedBox(width: 6),
-              Expanded(child: Text(text, style: NeonText.body(12, color: color), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              Expanded(
+                  child:
+                      Text(text, style: NeonText.body(12, color: color), maxLines: 1, overflow: TextOverflow.ellipsis)),
             ],
           ),
         ),
-      if (items.length > 3)
-        Text('+${items.length - 3} more in Goals', style: NeonText.body(11, color: NeonColors.dim)),
+      if (items.length > 3) Text('+${items.length - 3} more in Goals', style: NeonText.body(11, color: NeonColors.dim)),
     ];
   }
 }
@@ -182,7 +192,16 @@ class _RecordBadgeState extends State<_RecordBadge> with SingleTickerProviderSta
     return ScaleTransition(
       scale: Tween(begin: 0.96, end: 1.06).animate(_c),
       alignment: Alignment.centerLeft,
-      child: Text('★ NEW RECORD ★', style: NeonText.glow(18, NeonColors.gold, spacing: 3)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, color: NeonColors.gold, size: 20),
+          const SizedBox(width: 4),
+          Text('NEW RECORD', style: NeonText.glow(18, NeonColors.gold, spacing: 3)),
+          const SizedBox(width: 4),
+          const Icon(Icons.star_rounded, color: NeonColors.gold, size: 20),
+        ],
+      ),
     );
   }
 }
@@ -224,9 +243,11 @@ class NeonPauseMenu extends StatelessWidget {
                       children: [
                         Text('PAUSED', style: NeonText.glow(30, NeonColors.cyan, spacing: 6)),
                         const SizedBox(height: 14),
-                        NeonButton(label: 'RESUME', icon: Icons.play_arrow_rounded, big: true, filled: true, onTap: onResume),
+                        NeonButton(
+                            label: 'RESUME', icon: Icons.play_arrow_rounded, big: true, filled: true, onTap: onResume),
                         const SizedBox(height: 10),
-                        NeonButton(label: 'RESTART', icon: Icons.replay_rounded, color: NeonColors.violet, onTap: onRestart),
+                        NeonButton(
+                            label: 'RESTART', icon: Icons.replay_rounded, color: NeonColors.violet, onTap: onRestart),
                         const SizedBox(height: 10),
                         NeonButton(label: 'QUIT', icon: Icons.home_rounded, color: NeonColors.magenta, onTap: onQuit),
                       ],

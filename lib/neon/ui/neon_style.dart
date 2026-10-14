@@ -48,7 +48,8 @@ ThemeData neonTheme() => ThemeData(
         surface: NeonColors.panel,
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? NeonColors.cyan : NeonColors.dim),
+        thumbColor:
+            WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? NeonColors.cyan : NeonColors.dim),
         trackColor: WidgetStateProperty.resolveWith(
             (s) => s.contains(WidgetState.selected) ? NeonColors.cyan.withAlpha(90) : const Color(0xFF231C40)),
       ),
@@ -57,7 +58,12 @@ ThemeData neonTheme() => ThemeData(
 
 /// A glowing outlined panel.
 class NeonPanel extends StatelessWidget {
-  const NeonPanel({super.key, required this.child, this.color = NeonColors.violet, this.padding = const EdgeInsets.all(14), this.glow = 0.35});
+  const NeonPanel(
+      {super.key,
+      required this.child,
+      this.color = NeonColors.violet,
+      this.padding = const EdgeInsets.all(14),
+      this.glow = 0.35});
 
   final Widget child;
   final Color color;
@@ -138,7 +144,9 @@ class _NeonButtonState extends State<NeonButton> {
               color: widget.filled ? c.withAlpha(_down ? 120 : 70) : NeonColors.panel.withAlpha(200),
               borderRadius: BorderRadius.circular(h / 2),
               border: Border.all(color: c, width: widget.big ? 2.2 : 1.6),
-              boxShadow: [BoxShadow(color: c.withAlpha(enabled ? (_down ? 170 : 100) : 0), blurRadius: widget.big ? 24 : 14)],
+              boxShadow: [
+                BoxShadow(color: c.withAlpha(enabled ? (_down ? 170 : 100) : 0), blurRadius: widget.big ? 24 : 14)
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -167,7 +175,8 @@ class _NeonButtonState extends State<NeonButton> {
 
 /// Small round icon button (pause, back).
 class NeonIconButton extends StatelessWidget {
-  const NeonIconButton({super.key, required this.icon, required this.onTap, this.color = NeonColors.cyan, this.size = 44, this.tooltip});
+  const NeonIconButton(
+      {super.key, required this.icon, required this.onTap, this.color = NeonColors.cyan, this.size = 44, this.tooltip});
 
   final IconData icon;
   final VoidCallback onTap;

@@ -34,7 +34,8 @@ class NeonChallengesPage extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            NeonIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
+                            NeonIconButton(
+                                icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
                             const SizedBox(width: 12),
                             Text('GOALS', style: NeonText.glow(20, NeonColors.gold, spacing: 4)),
                           ],
@@ -45,7 +46,8 @@ class NeonChallengesPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('DAILY CHALLENGE · ${daily.date}', style: NeonText.glow(13, NeonColors.gold, spacing: 2)),
+                              Text('DAILY CHALLENGE · ${daily.date}',
+                                  style: NeonText.glow(13, NeonColors.gold, spacing: 2)),
                               const SizedBox(height: 6),
                               Text(
                                 'Everyone gets the same corridor today. Score ${formatInt(daily.target)} '
@@ -53,10 +55,14 @@ class NeonChallengesPage extends StatelessWidget {
                                 style: NeonText.body(13),
                               ),
                               const SizedBox(height: 8),
-                              _Bar(value: daily.target == 0 ? 0 : cubit.dailyBestToday / daily.target, color: NeonColors.gold),
+                              _Bar(
+                                  value: daily.target == 0 ? 0 : cubit.dailyBestToday / daily.target,
+                                  color: NeonColors.gold),
                               const SizedBox(height: 4),
                               Text(
-                                done ? 'Completed ✓  ·  best ${formatInt(cubit.dailyBestToday)}' : 'Best today: ${formatInt(cubit.dailyBestToday)}',
+                                done
+                                    ? 'Completed  ·  best ${formatInt(cubit.dailyBestToday)}'
+                                    : 'Best today: ${formatInt(cubit.dailyBestToday)}',
                                 style: NeonText.body(12, color: done ? NeonColors.cyan : NeonColors.dim),
                               ),
                               const SizedBox(height: 10),
@@ -72,20 +78,20 @@ class NeonChallengesPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         NeonPanel(
-                            color: NeonColors.violet,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text('PERSONAL BEST', style: NeonText.glow(13, NeonColors.violet, spacing: 2)),
-                                const SizedBox(height: 8),
-                                for (var i = 0; i < NeonCatalog.bestTiers.length; i++)
-                                  _TierRow(
-                                    tier: NeonCatalog.bestTiers[i],
-                                    reward: NeonCatalog.bestTierRewards[i],
-                                    best: p.best,
-                                  ),
-                              ],
-                            ),
+                          color: NeonColors.violet,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text('PERSONAL BEST', style: NeonText.glow(13, NeonColors.violet, spacing: 2)),
+                              const SizedBox(height: 8),
+                              for (var i = 0; i < NeonCatalog.bestTiers.length; i++)
+                                _TierRow(
+                                  tier: NeonCatalog.bestTiers[i],
+                                  reward: NeonCatalog.bestTierRewards[i],
+                                  best: p.best,
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -168,12 +174,13 @@ class _TierRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(done ? Icons.check_circle_rounded : Icons.radio_button_unchecked, color: done ? NeonColors.cyan : NeonColors.dim, size: 18),
+          Icon(done ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+              color: done ? NeonColors.cyan : NeonColors.dim, size: 18),
           const SizedBox(width: 8),
           SizedBox(width: 64, child: Text(formatInt(tier), style: NeonText.body(13, weight: FontWeight.w800))),
           Expanded(child: _Bar(value: best / tier, color: done ? NeonColors.cyan : NeonColors.violet)),
           const SizedBox(width: 8),
-          Text('◆$reward', style: NeonText.body(12, color: NeonColors.dim)),
+          _Energy(reward),
         ],
       ),
     );
@@ -202,14 +209,33 @@ class _AchievementRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(a.title, style: NeonText.body(14, weight: FontWeight.w800, color: done ? NeonColors.text : NeonColors.dim)),
+                Text(a.title,
+                    style: NeonText.body(14, weight: FontWeight.w800, color: done ? NeonColors.text : NeonColors.dim)),
                 Text(a.description, style: NeonText.body(12, color: NeonColors.dim)),
               ],
             ),
           ),
-          Text(done ? 'DONE' : '◆${a.reward}', style: NeonText.body(12, color: done ? NeonColors.cyan : NeonColors.dim)),
+          done ? Text('DONE', style: NeonText.body(12, color: NeonColors.cyan)) : _Energy(a.reward),
         ],
       ),
+    );
+  }
+}
+
+class _Energy extends StatelessWidget {
+  const _Energy(this.amount);
+
+  final int amount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.diamond, color: NeonColors.dim, size: 12),
+        const SizedBox(width: 3),
+        Text('$amount', style: NeonText.body(12, color: NeonColors.dim)),
+      ],
     );
   }
 }

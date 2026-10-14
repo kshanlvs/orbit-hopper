@@ -47,7 +47,8 @@ class _NeonLabPageState extends State<NeonLabPage> {
                       children: [
                         Row(
                           children: [
-                            NeonIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
+                            NeonIconButton(
+                                icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -143,7 +144,7 @@ class _NeonLabPageState extends State<NeonLabPage> {
             name: s.name,
             color: SkinLook.of(s.id).glow,
             second: SkinLook.of(s.id).core,
-            status: p.skin == s.id ? 'EQUIPPED' : (p.ownedSkins.contains(s.id) ? 'OWNED' : '◆ ${formatInt(s.price)}'),
+            status: p.skin == s.id ? 'EQUIPPED' : (p.ownedSkins.contains(s.id) ? 'OWNED' : '${formatInt(s.price)} ENERGY'),
             locked: !p.ownedSkins.contains(s.id),
             selected: skin == s.id,
           ),
@@ -154,7 +155,7 @@ class _NeonLabPageState extends State<NeonLabPage> {
             name: t.name,
             color: SkinLook.of(p.skin).glow,
             second: NeonColors.panel,
-            status: p.trail == t.id ? 'EQUIPPED' : (p.ownedTrails.contains(t.id) ? 'OWNED' : '◆ ${formatInt(t.price)}'),
+            status: p.trail == t.id ? 'EQUIPPED' : (p.ownedTrails.contains(t.id) ? 'OWNED' : '${formatInt(t.price)} ENERGY'),
             locked: !p.ownedTrails.contains(t.id),
             selected: trail == t.id,
           ),
@@ -213,10 +214,10 @@ class _NeonLabPageState extends State<NeonLabPage> {
           label = 'EQUIP';
           action = () => _run(cubit.skin(s.id), '${s.name} equipped.');
         } else if (p.energy >= s.price) {
-          label = 'BUY  ◆ ${formatInt(s.price)}';
+          label = 'BUY · ${formatInt(s.price)}';
           action = () => _run(cubit.skin(s.id), '${s.name} unlocked!');
         } else {
-          label = 'NEED ◆ ${formatInt(s.price - p.energy)} MORE';
+          label = 'NEED ${formatInt(s.price - p.energy)} MORE';
         }
       case _Tab.trails:
         final t = NeonCatalog.trail(trail);
@@ -227,10 +228,10 @@ class _NeonLabPageState extends State<NeonLabPage> {
           label = 'EQUIP';
           action = () => _run(cubit.trail(t.id), '${t.name} equipped.');
         } else if (p.energy >= t.price) {
-          label = 'BUY  ◆ ${formatInt(t.price)}';
+          label = 'BUY · ${formatInt(t.price)}';
           action = () => _run(cubit.trail(t.id), '${t.name} unlocked!');
         } else {
-          label = 'NEED ◆ ${formatInt(t.price - p.energy)} MORE';
+          label = 'NEED ${formatInt(t.price - p.energy)} MORE';
         }
     }
     return Row(
@@ -240,6 +241,7 @@ class _NeonLabPageState extends State<NeonLabPage> {
         Flexible(
           child: NeonButton(
             label: label,
+            icon: label.startsWith('BUY') || label.startsWith('NEED') ? Icons.diamond : null,
             color: action == null ? NeonColors.dim : NeonColors.magenta,
             filled: action != null,
             onTap: action,
@@ -322,7 +324,8 @@ class _ItemCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(item.name, style: NeonText.body(13, weight: FontWeight.w800), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(item.name,
+                  style: NeonText.body(13, weight: FontWeight.w800), maxLines: 1, overflow: TextOverflow.ellipsis),
               Text(item.status, style: NeonText.body(11, color: NeonColors.dim), maxLines: 1),
             ],
           ),

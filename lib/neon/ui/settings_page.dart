@@ -29,7 +29,8 @@ class NeonSettingsPage extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      NeonIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
+                      NeonIconButton(
+                          icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
                       const SizedBox(width: 12),
                       Text('SETTINGS', style: NeonText.glow(20, NeonColors.cyan, spacing: 4)),
                     ],
@@ -45,8 +46,10 @@ class NeonSettingsPage extends StatelessWidget {
                               children: [
                                 Text('AUDIO & FEEL', style: NeonText.glow(13, NeonColors.violet, spacing: 2)),
                                 _Row('Music', 'Synthwave soundtrack', s.music, (v) => set(s.copyWith(music: v))),
-                                _Row('Sound effects', 'Flips, shards, near misses', s.sfx, (v) => set(s.copyWith(sfx: v))),
-                                _Row('Haptics', 'Vibration on flips and impacts', s.haptics, (v) => set(s.copyWith(haptics: v))),
+                                _Row('Sound effects', 'Flips, shards, near misses', s.sfx,
+                                    (v) => set(s.copyWith(sfx: v))),
+                                _Row('Haptics', 'Vibration on flips and impacts', s.haptics,
+                                    (v) => set(s.copyWith(haptics: v))),
                               ],
                             ),
                           ),
@@ -56,7 +59,8 @@ class NeonSettingsPage extends StatelessWidget {
                           child: NeonPanel(
                             child: ListView(
                               children: [
-                                Text('COMFORT & ACCESSIBILITY', style: NeonText.glow(13, NeonColors.violet, spacing: 2)),
+                                Text('COMFORT & ACCESSIBILITY',
+                                    style: NeonText.glow(13, NeonColors.violet, spacing: 2)),
                                 _Row(
                                   'Reduced effects',
                                   'No shake, flashes or camera twist; fewer particles',
@@ -84,7 +88,7 @@ class NeonSettingsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Controls: tap anywhere to flip gravity · ⚡ button to Pulse Dash · keyboard: Space flips, D dashes, P pauses',
+                    'Controls: tap anywhere to flip gravity · bolt button to Pulse Dash · keyboard: Space flips, D dashes, P pauses',
                     textAlign: TextAlign.center,
                     style: NeonText.body(11, color: NeonColors.dim),
                   ),

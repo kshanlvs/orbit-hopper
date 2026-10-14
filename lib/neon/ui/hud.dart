@@ -65,8 +65,7 @@ class NeonHudView extends StatelessWidget {
                 onTap: game.dash,
               ),
             ),
-            if (h.tutorial)
-              const Positioned.fill(child: IgnorePointer(child: _TapHint())),
+            if (h.tutorial) const Positioned.fill(child: IgnorePointer(child: _TapHint())),
             if (h.ready)
               Positioned.fill(
                 child: IgnorePointer(

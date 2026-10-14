@@ -141,8 +141,10 @@ void main() {
         bot.tick();
         if (world.dashReady && world.s > 600) world.dash();
         for (final e in world.events) {
-          if (e.type == NeonEventType.shard) particles.burst(e.x, e.y, const Color(0xFF8CFBFF), 7, speed: 0.8, size: 0.009);
-          if (e.type == NeonEventType.nearMiss) floaters.add(e.x, e.y - 0.12, 'NEAR MISS +${e.value}', const Color(0xFF8A5CFF));
+          if (e.type == NeonEventType.shard)
+            particles.burst(e.x, e.y, const Color(0xFF8CFBFF), 7, speed: 0.8, size: 0.009);
+          if (e.type == NeonEventType.nearMiss)
+            floaters.add(e.x, e.y - 0.12, 'NEAR MISS +${e.value}', const Color(0xFF8A5CFF));
         }
         world.events.clear();
         tx.add(world.s);

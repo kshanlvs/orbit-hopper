@@ -83,8 +83,8 @@ class NeonHud {
       other.ready == ready;
 
   @override
-  int get hashCode =>
-      Object.hash(score, distance, multiplier, chain, chainLeft, shards, dashCharge, dashReady, dashing, tutorial, ready);
+  int get hashCode => Object.hash(
+      score, distance, multiplier, chain, chainLeft, shards, dashCharge, dashReady, dashing, tutorial, ready);
 }
 
 enum ToastKind { banner, small, record }
@@ -265,9 +265,8 @@ class NeonGame extends FlameGame {
     if (inBreak) _variantShown = sim.activeBreak;
     _breakBlend += ((inBreak ? 1.0 : 0.0) - _breakBlend) * math.min(1, dt * 2.2);
 
-    final chaseTarget = sim.chaseActive
-        ? 0.3 + 0.7 * ((sim.s - sim.chaseStartedAt) / (Tune.chaseLength + 4)).clamp(0.0, 1.0)
-        : 0.0;
+    final chaseTarget =
+        sim.chaseActive ? 0.3 + 0.7 * ((sim.s - sim.chaseStartedAt) / (Tune.chaseLength + 4)).clamp(0.0, 1.0) : 0.0;
     _chaseFront += (chaseTarget - _chaseFront) * math.min(1, dt * (sim.chaseActive ? 1.5 : 3.5));
     if (!sim.chaseActive && _chaseFront < 0.01) _chaseFront = 0;
 
@@ -344,7 +343,7 @@ class NeonGame extends FlameGame {
         case NeonEventType.dashReady:
           _audio.play(NeonSfx.dashReady);
           _audio.mediumHaptic();
-          _toast(NeonToast('PULSE DASH READY', sub: 'Tap ⚡ to phase through magenta', color: pal.dash));
+          _toast(NeonToast('PULSE DASH READY', sub: 'Tap the bolt to phase through magenta', color: pal.dash));
         case NeonEventType.dashStart:
           _audio.play(NeonSfx.dash);
           _audio.heavyHaptic();

@@ -114,7 +114,8 @@ class _PreviewPainter extends CustomPainter {
       final k = 1 - i / n;
       switch (trail) {
         case 'dots':
-          if (i.isEven) canvas.drawCircle(Offset(x, y), r * 0.35 * (0.4 + k), paint..color = glow.withAlpha((200 * k).round()));
+          if (i.isEven)
+            canvas.drawCircle(Offset(x, y), r * 0.35 * (0.4 + k), paint..color = glow.withAlpha((200 * k).round()));
         case 'echo':
           if (i % 6 == 0) {
             canvas.drawCircle(
@@ -152,7 +153,12 @@ class _PreviewPainter extends CustomPainter {
       }
     }
     final c = Offset(ox, yAt(t));
-    canvas.drawCircle(c, r * 3, Paint()..shader = RadialGradient(colors: [glow.withAlpha(150), glow.withAlpha(0)]).createShader(Rect.fromCircle(center: c, radius: r * 3)));
+    canvas.drawCircle(
+        c,
+        r * 3,
+        Paint()
+          ..shader = RadialGradient(colors: [glow.withAlpha(150), glow.withAlpha(0)])
+              .createShader(Rect.fromCircle(center: c, radius: r * 3)));
     if (skin.style == 'ghost') {
       canvas.drawCircle(
         c,

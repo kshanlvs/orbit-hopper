@@ -58,34 +58,34 @@ class NeonMenuPage extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
                             child: Row(
-                            children: [
-                              NeonButton(
-                                label: 'PLAY',
-                                icon: Icons.play_arrow_rounded,
-                                big: true,
-                                filled: true,
-                                onTap: () => context.push(NeonRoutes.play),
-                              ),
-                              const SizedBox(width: 22),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text('BEST', style: NeonText.label),
-                                  Text(formatInt(p.best), style: NeonText.glow(24, NeonColors.gold, spacing: 1)),
-                                ],
-                              ),
-                              const SizedBox(width: 22),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text('ENERGY', style: NeonText.label),
-                                  EnergyChip(amount: p.energy, size: 20),
-                                ],
-                              ),
-                            ],
-                          ),
+                              children: [
+                                NeonButton(
+                                  label: 'PLAY',
+                                  icon: Icons.play_arrow_rounded,
+                                  big: true,
+                                  filled: true,
+                                  onTap: () => context.push(NeonRoutes.play),
+                                ),
+                                const SizedBox(width: 22),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('BEST', style: NeonText.label),
+                                    Text(formatInt(p.best), style: NeonText.glow(24, NeonColors.gold, spacing: 1)),
+                                  ],
+                                ),
+                                const SizedBox(width: 22),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('ENERGY', style: NeonText.label),
+                                    EnergyChip(amount: p.energy, size: 20),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                           const Spacer(),
                         ],
@@ -97,55 +97,55 @@ class NeonMenuPage extends StatelessWidget {
                       child: Center(
                         child: SingleChildScrollView(
                           child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _DailyCard(
-                            target: daily.target,
-                            best: cubit.dailyBestToday,
-                            done: cubit.dailyDoneToday,
-                            onPlay: () => context.push(NeonRoutes.daily),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                child: _Tile(
-                                  icon: Icons.auto_awesome,
-                                  label: 'LAB',
-                                  color: NeonColors.magenta,
-                                  onTap: () => context.push(NeonRoutes.lab),
-                                ),
+                              _DailyCard(
+                                target: daily.target,
+                                best: cubit.dailyBestToday,
+                                done: cubit.dailyDoneToday,
+                                onPlay: () => context.push(NeonRoutes.daily),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _Tile(
-                                  icon: Icons.emoji_events_rounded,
-                                  label: 'GOALS',
-                                  color: NeonColors.gold,
-                                  badge: '${p.achievements.length}/${NeonCatalog.achievements.length}',
-                                  onTap: () => context.push(NeonRoutes.challenges),
-                                ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _Tile(
+                                      icon: Icons.auto_awesome,
+                                      label: 'LAB',
+                                      color: NeonColors.magenta,
+                                      onTap: () => context.push(NeonRoutes.lab),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _Tile(
+                                      icon: Icons.emoji_events_rounded,
+                                      label: 'GOALS',
+                                      color: NeonColors.gold,
+                                      badge: '${p.achievements.length}/${NeonCatalog.achievements.length}',
+                                      onTap: () => context.push(NeonRoutes.challenges),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _Tile(
+                                      icon: Icons.tune_rounded,
+                                      label: 'SETTINGS',
+                                      color: NeonColors.cyan,
+                                      onTap: () => context.push(NeonRoutes.settings),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _Tile(
-                                  icon: Icons.tune_rounded,
-                                  label: 'SETTINGS',
-                                  color: NeonColors.cyan,
-                                  onTap: () => context.push(NeonRoutes.settings),
-                                ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Dimension: ${NeonCatalog.dimension(p.dimension).name}   ·   Runs: ${formatInt(p.runs)}',
+                                textAlign: TextAlign.center,
+                                style: NeonText.body(12, color: NeonColors.dim),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Dimension: ${NeonCatalog.dimension(p.dimension).name}   ·   Runs: ${formatInt(p.runs)}',
-                            textAlign: TextAlign.center,
-                            style: NeonText.body(12, color: NeonColors.dim),
-                          ),
-                        ],
-                      ),
                         ),
                       ),
                     ),
@@ -198,17 +198,17 @@ class _LogoState extends State<_Logo> with SingleTickerProviderStateMixin {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Opacity(opacity: flicker, child: Text('NEON', style: NeonText.glow(size, NeonColors.cyan, spacing: 6))),
-              SizedBox(width: size * 0.3),
-              Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.diagonal3Values(1, scaleY.abs() < 0.08 ? (scaleY >= 0 ? 0.08 : -0.08) : scaleY, 1),
-                child: Text('SHIFT', style: NeonText.glow(size, NeonColors.magenta, spacing: 6)),
-              ),
-            ],
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Opacity(opacity: flicker, child: Text('NEON', style: NeonText.glow(size, NeonColors.cyan, spacing: 6))),
+                SizedBox(width: size * 0.3),
+                Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.diagonal3Values(1, scaleY.abs() < 0.08 ? (scaleY >= 0 ? 0.08 : -0.08) : scaleY, 1),
+                  child: Text('SHIFT', style: NeonText.glow(size, NeonColors.magenta, spacing: 6)),
+                ),
+              ],
             ),
           );
         },
@@ -254,7 +254,9 @@ class _DailyCard extends StatelessWidget {
                 Text('Same corridor for everyone today.', style: NeonText.body(12, color: NeonColors.dim), maxLines: 2),
                 const SizedBox(height: 4),
                 Text(
-                  done ? 'Completed ✓  best ${formatInt(best)}' : 'Score ${formatInt(target)}  ·  +${NeonCatalog.dailyReward} energy',
+                  done
+                      ? 'Completed · best ${formatInt(best)}'
+                      : 'Score ${formatInt(target)}  ·  +${NeonCatalog.dailyReward} energy',
                   style: NeonText.body(13, color: done ? NeonColors.cyan : NeonColors.text),
                 ),
               ],
