@@ -35,7 +35,9 @@ class _DiscoveryOverlayState extends State<DiscoveryOverlay> {
         final d = s.discovery;
         _timer?.cancel();
         if (d == null) return;
-        _timer = Timer(const Duration(milliseconds: 6000), () {
+        // Story transmissions need longer to read.
+        final story = _storyFor(d) != null;
+        _timer = Timer(Duration(milliseconds: story ? 11000 : 6000), () {
           if (mounted) context.read<RunCubit>().dismissDiscovery(d.id);
         });
       },
@@ -76,7 +78,7 @@ class _DiscoveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final k = discovery.landmarkIndex;
-    final l = journey[k];
+    final l = Cosmos.place(k);
     final color = Color(l.look.primary);
     final progress = context.read<ProgressCubit>();
     final isStart = k == 0;
@@ -84,10 +86,12 @@ class _DiscoveryCard extends StatelessWidget {
     final label = depart
         ? (isStart ? 'YOUR JOURNEY BEGINS' : 'DEPARTING FROM')
         : discovery.isNew
-            ? 'NEW DISCOVERY  +${ProgressCubit.discoveryBonus} ✦'
+            ? (l.real ? 'NEW DISCOVERY' : 'UNCHARTED WORLD') + '  +${ProgressCubit.discoveryBonus} ✦'
             : 'YOU REACHED';
-    final next = k + 1 < journey.length ? k + 1 : null;
-    final nextKnown = next != null && progress.isDiscovered(next);
+    final next = k + 1;
+    final nextKnown = progress.isDiscovered(next);
+    final story = _storyFor(discovery);
+    final milestone = !depart && discovery.isNew ? Cosmos.chapterEndingAt(k) : null;
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 420),
@@ -120,7 +124,11 @@ class _DiscoveryCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(l.name, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
                 Text(
-                  isStart ? 'The center of our solar system' : '${l.distanceLabel} from the Sun',
+                  isStart
+                      ? 'The center of our solar system'
+                      : l.real
+                          ? '${l.distanceLabel} from the Sun'
+                          : 'Beyond the observable universe',
                   style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700),
                 ),
                 if (!depart && l.region != null && !isStart) ...[
@@ -139,17 +147,53 @@ class _DiscoveryCard extends StatelessWidget {
                         color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5),
                   ),
                 ],
+                if (milestone != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'MILESTONE: ${milestone.title.toUpperCase()}  +${milestone.reward} ✦',
+                    style: const TextStyle(
+                        color: Color(0xFF5CFFB0), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                  ),
+                ],
                 if (!depart) ...[
                   const SizedBox(height: 6),
+                  if (!l.real)
+                    const Text(
+                      'LUMEN ARCHIVE',
+                      style: TextStyle(
+                          color: Color(0xFF7CF5FF), fontSize: 9.5, fontWeight: FontWeight.w800, letterSpacing: 2),
+                    ),
                   Text(
                     l.facts[discovery.factIndex % l.facts.length],
                     style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.35),
                   ),
                 ],
-                if (next != null) ...[
+                if (story != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.settings_input_antenna_rounded, size: 13, color: Color(0xFFFFD166)),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          story.fragment == null
+                              ? 'TRANSMISSION · ${story.from}'
+                              : '${story.from}  ·  SIGNAL ${story.fragment}/$signalFragments',
+                          style: const TextStyle(
+                            color: Color(0xFFFFD166),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  _Typewriter(text: story.text, color: const Color(0xFFFFE6A8)),
+                ] else ...[
                   const SizedBox(height: 8),
                   Text(
-                    nextKnown ? 'NEXT: ${journey[next].name.toUpperCase()}' : 'INCOMING SIGNAL',
+                    nextKnown ? 'NEXT: ${Cosmos.place(next).name.toUpperCase()}' : 'INCOMING SIGNAL',
                     style: const TextStyle(
                       color: Color(0xFF7CF5FF),
                       fontSize: 10,
@@ -157,7 +201,7 @@ class _DiscoveryCard extends StatelessWidget {
                       letterSpacing: 2,
                     ),
                   ),
-                  if (!nextKnown) _Typewriter(text: '"${journey[next].teaser}"'),
+                  if (!nextKnown) _Typewriter(text: '"${Cosmos.place(next).teaser}"'),
                 ],
               ],
             ),
@@ -170,9 +214,10 @@ class _DiscoveryCard extends StatelessWidget {
 
 /// Reveals a line letter by letter, like a transmission coming in.
 class _Typewriter extends StatelessWidget {
-  const _Typewriter({required this.text});
+  const _Typewriter({required this.text, this.color = const Color(0xFFB8F9FF)});
 
   final String text;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -184,8 +229,8 @@ class _Typewriter extends StatelessWidget {
         final shown = (((t * (text.length + 18)) - 18).clamp(0, text.length)).toInt();
         return Text(
           text.substring(0, shown),
-          style: const TextStyle(
-            color: Color(0xFFB8F9FF),
+          style: TextStyle(
+            color: color,
             fontSize: 12.5,
             fontStyle: FontStyle.italic,
             height: 1.35,
@@ -194,4 +239,11 @@ class _Typewriter extends StatelessWidget {
       },
     );
   }
+}
+
+/// The story transmission to show with this card, if any: on the first
+/// discovery of a story place, or whenever departing from the Sun.
+Transmission? _storyFor(Discovery d) {
+  if (d.isDeparture) return d.landmarkIndex == 0 ? Cosmos.transmissionAt(0) : null;
+  return d.isNew ? Cosmos.transmissionAt(d.landmarkIndex) : null;
 }

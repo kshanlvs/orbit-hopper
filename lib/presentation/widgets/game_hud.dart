@@ -120,9 +120,9 @@ class _JourneyStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final index = travelIndex.floor();
-    final next = Cosmos.nextLandmark(index);
-    final nextIndex = next == null ? null : journey.indexOf(next);
-    final known = nextIndex != null && context.read<ProgressCubit>().isDiscovered(nextIndex);
+    final Landmark? next = Cosmos.nextLandmark(index);
+    final nextIndex = index ~/ hopsPerLandmark + 1;
+    final known = context.read<ProgressCubit>().isDiscovered(nextIndex);
     final base = Cosmos.lastLandmarkBefore(index) * hopsPerLandmark;
     final progress = ((travelIndex - base) / hopsPerLandmark).clamp(0.0, 1.0).toDouble();
     const signal = Color(0xFF7CF5FF);

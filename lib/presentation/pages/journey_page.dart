@@ -22,18 +22,21 @@ class JourneyPage extends StatelessWidget {
       body: BlocBuilder<ProgressCubit, PlayerProgress>(
         builder: (context, progress) {
           final cubit = context.read<ProgressCubit>();
-          final found = [for (var k = 0; k < journey.length; k++) cubit.isDiscovered(k)].where((d) => d).length;
+          final foundReal = [for (var k = 0; k < realPlaces; k++) cubit.isDiscovered(k)].where((d) => d).length;
+          final uncharted = cubit.unchartedFound;
           final launch = cubit.launchIndex;
+          // Real places, every uncharted world found so far, and one more mystery.
+          final count = realPlaces + uncharted + 1;
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
-            itemCount: journey.length + 1,
+            itemCount: count + 1,
             itemBuilder: (context, i) {
-              if (i == 0) return _Header(found: found);
+              if (i == 0) return _Header(found: foundReal, uncharted: uncharted);
               final k = i - 1;
               return _Stop(
                 index: k,
                 discovered: cubit.isDiscovered(k),
-                isLast: k == journey.length - 1,
+                isLast: k == count - 1,
                 isLaunchPoint: k == launch,
                 onLaunchHere: () => cubit.setLaunchFrom(k),
               );
@@ -46,39 +49,188 @@ class JourneyPage extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.found});
+  const _Header({required this.found, required this.uncharted});
 
   final int found;
+  final int uncharted;
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<ProgressCubit>();
+    final fragments = cubit.fragmentsDecoded;
+    final (chapter, left) = Cosmos.nextChapter(cubit.furthestDiscovered);
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '$found / ${journey.length} discovered',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            '$found / $realPlaces real places discovered',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
+          if (uncharted > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '+ $uncharted uncharted world${uncharted == 1 ? '' : 's'} beyond the edge',
+                style: const TextStyle(color: Color(0xFF7CF5FF), fontWeight: FontWeight.w700),
+              ),
+            ),
           const SizedBox(height: 6),
           const Text(
             'Real places in their true order outward from the Sun. Land on one to unlock it '
             'and earn +${ProgressCubit.discoveryBonus} stardust. Every place you discover becomes a '
-            'launch point, so your journey can always continue.',
+            'launch point. Past the edge of the universe, new worlds never stop appearing.',
             style: TextStyle(color: AppColors.textDim, height: 1.4),
           ),
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: found / journey.length,
+              value: found / realPlaces,
               minHeight: 6,
               backgroundColor: Colors.white.fade(0.08),
               color: AppColors.gold,
             ),
           ),
+          const SizedBox(height: 14),
+          _InfoTile(
+            icon: Icons.flag_rounded,
+            color: const Color(0xFF5CFFB0),
+            title: 'NEXT MILESTONE: ${chapter.title.toUpperCase()}',
+            body: '$left place${left == 1 ? '' : 's'} to go  ·  reward +${chapter.reward} ✦',
+          ),
+          const SizedBox(height: 10),
+          _SignalTile(fragments: fragments),
         ],
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  const _InfoTile({required this.icon, required this.color, required this.title, required this.body});
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.fade(0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.fade(0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.5)),
+                const SizedBox(height: 2),
+                Text(body, style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "The Signal": story progress and every transmission unlocked so far.
+class _SignalTile extends StatefulWidget {
+  const _SignalTile({required this.fragments});
+
+  final int fragments;
+
+  @override
+  State<_SignalTile> createState() => _SignalTileState();
+}
+
+class _SignalTileState extends State<_SignalTile> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ProgressCubit>();
+    const gold = Color(0xFFFFD166);
+    final unlocked = [
+      for (final e in transmissions.entries)
+        if (cubit.isDiscovered(Cosmos.indexOfId(e.key)) || e.key == 'sun') e.value,
+    ];
+    final contact = cubit.isDiscovered(realPlaces);
+    return GestureDetector(
+      onTap: () => setState(() => _open = !_open),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: gold.fade(0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: gold.fade(0.4)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.settings_input_antenna_rounded, color: gold, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    contact
+                        ? 'THE SIGNAL · FIRST CONTACT MADE'
+                        : 'THE SIGNAL · ${widget.fragments}/$signalFragments DECODED',
+                    style: const TextStyle(color: gold, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.5),
+                  ),
+                ),
+                Icon(_open ? Icons.expand_less_rounded : Icons.expand_more_rounded, color: Colors.white54),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: widget.fragments / signalFragments,
+                minHeight: 5,
+                backgroundColor: Colors.white.fade(0.08),
+                color: gold,
+              ),
+            ),
+            if (!_open)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Someone out there is calling. Tap to read the transmissions.',
+                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                ),
+              ),
+            if (_open)
+              for (final t in unlocked)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(t.from,
+                          style: const TextStyle(
+                              color: gold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                      const SizedBox(height: 2),
+                      Text(t.text,
+                          style: const TextStyle(
+                              color: Color(0xFFFFE6A8), fontStyle: FontStyle.italic, height: 1.4, fontSize: 13)),
+                    ],
+                  ),
+                ),
+          ],
+        ),
       ),
     );
   }
@@ -108,7 +260,7 @@ class _StopState extends State<_Stop> {
 
   @override
   Widget build(BuildContext context) {
-    final l = journey[widget.index];
+    final l = Cosmos.place(widget.index);
     final color = Color(l.look.primary);
     final region = l.region;
     return Column(
@@ -172,7 +324,11 @@ class _StopState extends State<_Stop> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          widget.index == 0 ? 'Where every journey starts' : '${l.distanceLabel} from the Sun',
+                          widget.index == 0
+                              ? 'Where every journey starts'
+                              : l.real
+                                  ? '${l.distanceLabel} from the Sun'
+                                  : 'Uncharted · beyond the edge',
                           style: TextStyle(
                             color: widget.discovered ? color : AppColors.textDim.fade(0.7),
                             fontSize: 12,

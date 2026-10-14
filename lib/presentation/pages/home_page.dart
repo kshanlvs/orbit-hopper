@@ -73,12 +73,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final skin = CometSkins.byId(progress.selectedSkinId);
     final cubit = context.read<ProgressCubit>();
     final launch = cubit.launchIndex;
-    int? unknown;
-    for (var k = launch + 1; k < journey.length; k++) {
-      if (!cubit.isDiscovered(k)) {
-        unknown = k;
-        break;
-      }
+    // The journey never ends, so there is always a next unknown place.
+    var unknown = launch + 1;
+    while (cubit.isDiscovered(unknown)) {
+      unknown++;
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -104,7 +102,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'BEST ${progress.bestScore}  ·  🌍 ${progress.discoveredIds.where((id) => journey.any((l) => l.id == id)).length}/${journey.length}',
+                      'BEST ${progress.bestScore}  ·  🌍 ${progress.discoveredIds.where((id) => !id.startsWith('beyond_')).length}/$realPlaces',
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppColors.textDim,
@@ -154,7 +152,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     _clock.elapsedMilliseconds / 1000,
                     Color(skin.argb),
                     skin.rainbow,
-                    journey[launch].look,
+                    Cosmos.place(launch).look,
                     launch,
                   ),
                 ),
@@ -162,10 +160,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
           ),
           Text(
-            launch == 0 ? 'ORBITING THE SUN' : 'ORBITING ${journey[launch].name.toUpperCase()}',
+            launch == 0 ? 'ORBITING THE SUN' : 'ORBITING ${Cosmos.place(launch).name.toUpperCase()}',
             style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2.5),
           ),
-          if (unknown != null) ...[
+          ...[
             const SizedBox(height: 10),
             Text(
               'INCOMING SIGNAL',
@@ -174,10 +172,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
             const SizedBox(height: 3),
             Text(
-              '"${journey[unknown].teaser}"',
+              '"${Cosmos.place(unknown).teaser}"',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Color(0xFFB8F9FF), fontStyle: FontStyle.italic, fontSize: 13),
             ),
+            const SizedBox(height: 8),
+            Builder(builder: (context) {
+              final (chapter, left) = Cosmos.nextChapter(cubit.furthestDiscovered);
+              return Text(
+                '📡 SIGNAL ${cubit.fragmentsDecoded}/$signalFragments  ·  🏁 ${chapter.title} ($left to go)',
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white60, fontSize: 11.5, fontWeight: FontWeight.w700),
+              );
+            }),
           ],
           const Spacer(),
           GlowButton(

@@ -77,6 +77,7 @@ class Landmark {
     required this.facts,
     required this.teaser,
     this.region,
+    this.real = true,
   });
 
   final String id;
@@ -94,6 +95,10 @@ class Landmark {
 
   /// A new region begins at this landmark (null = keep the previous one).
   final Region? region;
+
+  /// False for generated uncharted worlds beyond the edge (their text is
+  /// story, not science).
+  final bool real;
 }
 
 // ------------------------------------------------------------------ regions
@@ -211,6 +216,22 @@ const _localGroup = Region(
   fillers: [_galaxyBlue, _galaxyGold, _nebulaTeal],
   backdrop: Backdrop.galaxies,
 );
+const _virgo = Region(
+  name: 'The Virgo Cluster',
+  mood: Mood.cosmic,
+  topArgb: 0xFF03020C,
+  bottomArgb: 0xFF120C2A,
+  fillers: [_galaxyGold, _galaxyBlue, _starWhite],
+  backdrop: Backdrop.galaxies,
+);
+const _cosmicWeb = Region(
+  name: 'The Cosmic Web',
+  mood: Mood.cosmic,
+  topArgb: 0xFF05020E,
+  bottomArgb: 0xFF1A0830,
+  fillers: [_nebulaPink, _galaxyBlue, _nebulaTeal],
+  backdrop: Backdrop.galaxies,
+);
 const _beyond = Region(
   mood: Mood.cosmic,
   name: 'Beyond the Map',
@@ -225,6 +246,7 @@ const _beyond = Region(
 const double auPerLightYear = 63241;
 
 /// The real journey, in order of distance from the Sun.
+/// The real journey, in true order of distance from the Sun.
 const List<Landmark> journey = [
   Landmark(
     id: 'sun',
@@ -280,6 +302,19 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
+    id: 'moon',
+    teaser: 'A grey companion, close enough to touch… with footprints still on it.',
+    name: 'The Moon',
+    distanceAu: 1.0026,
+    distanceLabel: '1 AU',
+    look: BodyLook(BodyStyle.cratered, 0xFFC9C6C0, 0xFF7A7670),
+    radius: 24,
+    facts: [
+      'The Moon is about 384,400 km from Earth.',
+      'Only 12 people have ever walked on it, all on NASA\'s Apollo missions (1969–1972).',
+    ],
+  ),
+  Landmark(
     id: 'mars',
     teaser: 'A rusty world hiding the tallest volcano you will ever see.',
     name: 'Mars',
@@ -293,6 +328,20 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
+    id: 'vesta',
+    teaser: 'A bright rock among the dark ones, scarred by a giant crater.',
+    name: 'Vesta',
+    distanceAu: 2.36,
+    distanceLabel: '2.4 AU',
+    look: BodyLook(BodyStyle.rocky, 0xFFB8A48C, 0xFF6B5A48),
+    radius: 22,
+    region: _asteroidBelt,
+    facts: [
+      'Vesta is the brightest asteroid; on a dark night it can be seen without a telescope.',
+      'NASA\'s Dawn spacecraft orbited it in 2011–2012 before moving on to Ceres.',
+    ],
+  ),
+  Landmark(
     id: 'ceres',
     teaser: 'A field of drifting rocks… and a giant among them.',
     name: 'Ceres',
@@ -300,7 +349,6 @@ const List<Landmark> journey = [
     distanceLabel: '2.8 AU',
     look: BodyLook(BodyStyle.cratered, 0xFF8E8A86, 0xFF55514D),
     radius: 26,
-    region: _asteroidBelt,
     facts: [
       'Ceres is the largest object in the asteroid belt, and a dwarf planet.',
       'The belt holds millions of rocks, but they are so spread out that spacecraft cross it safely.',
@@ -321,6 +369,19 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
+    id: 'europa',
+    teaser: 'Ice above, something hidden below. An ocean?',
+    name: 'Europa',
+    distanceAu: 5.203,
+    distanceLabel: '5.2 AU',
+    look: BodyLook(BodyStyle.icy, 0xFFF0E2C8, 0xFFB07A55),
+    radius: 26,
+    facts: [
+      'Under Europa\'s icy shell lies a salty ocean, maybe with twice the water of all Earth\'s oceans.',
+      'NASA\'s Europa Clipper launched in 2024 to find out whether it could support life.',
+    ],
+  ),
+  Landmark(
     id: 'saturn',
     teaser: 'Something ahead is wearing a crown of ice.',
     name: 'Saturn',
@@ -331,6 +392,19 @@ const List<Landmark> journey = [
     facts: [
       'Saturn is less dense than water. In a big enough bathtub it would float!',
       'Its rings are mostly ice: some bits as small as dust, some as big as houses.',
+    ],
+  ),
+  Landmark(
+    id: 'titan',
+    teaser: 'An orange fog hides lakes that are not made of water.',
+    name: 'Titan',
+    distanceAu: 9.55,
+    distanceLabel: '9.5 AU',
+    look: BodyLook(BodyStyle.venus, 0xFFE6A84A, 0xFF9A6020),
+    radius: 30,
+    facts: [
+      'Titan is the only moon with a thick atmosphere.',
+      'It has rain, rivers and seas, but made of liquid methane, not water.',
     ],
   ),
   Landmark(
@@ -374,14 +448,66 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
-    id: 'voyager1',
-    teaser: 'A faint human signal… still transmitting since 1977.',
-    name: 'Voyager 1',
-    distanceAu: 165,
-    distanceLabel: '160+ AU',
+    id: 'arrokoth',
+    teaser: 'Something tiny and ancient, shaped like a snowman.',
+    name: 'Arrokoth',
+    distanceAu: 44.6,
+    distanceLabel: '≈44 AU',
+    look: BodyLook(BodyStyle.rocky, 0xFFC2705A, 0xFF6A3426),
+    radius: 22,
+    facts: [
+      'Arrokoth is the most distant object a spacecraft has ever flown past (New Horizons, 2019).',
+      'This snowman-shaped world has barely changed since the solar system formed.',
+    ],
+  ),
+  Landmark(
+    id: 'sedna',
+    teaser: 'A red loner on a journey that takes over 10,000 years.',
+    name: 'Sedna',
+    distanceAu: 84.0,
+    distanceLabel: '≈84 AU (now)',
+    look: BodyLook(BodyStyle.rocky, 0xFFD05A40, 0xFF6E2418),
+    radius: 24,
+    facts: [
+      'One orbit of the Sun takes Sedna more than 10,000 years.',
+      'It is one of the reddest objects in the solar system.',
+    ],
+  ),
+  Landmark(
+    id: 'eris',
+    teaser: 'A twin of a famous dwarf… the one that changed the rules.',
+    name: 'Eris',
+    distanceAu: 96.0,
+    distanceLabel: '≈96 AU (now)',
+    look: BodyLook(BodyStyle.icy, 0xFFF2F2F2, 0xFFA0A8B8),
+    radius: 26,
+    facts: [
+      'Eris is almost exactly the size of Pluto; its discovery in 2005 led to Pluto being called a dwarf planet.',
+      'Eris has a small moon named Dysnomia.',
+    ],
+  ),
+  Landmark(
+    id: 'voyager2',
+    teaser: 'Another human whisper in the dark. It saw the ice giants.',
+    name: 'Voyager 2',
+    distanceAu: 140.0,
+    distanceLabel: '≈140 AU',
     look: BodyLook(BodyStyle.probe, 0xFFD8D8D8, 0xFFFFC94D),
     radius: 24,
     region: _heliopause,
+    facts: [
+      'Voyager 2 is the only spacecraft ever to visit Uranus and Neptune.',
+      'It crossed into interstellar space in 2018, six years after its twin.',
+    ],
+  ),
+  Landmark(
+    id: 'voyager1',
+    teaser: 'A faint human signal… still transmitting since 1977.',
+    name: 'Voyager 1',
+    distanceAu: 170,
+    distanceLabel: '≈170 AU',
+    look: BodyLook(BodyStyle.probe, 0xFFD8D8D8, 0xFFFFC94D),
+    radius: 24,
     facts: [
       'Launched in 1977, Voyager 1 is the farthest human-made object.',
       'In 2012 it became the first spacecraft to reach interstellar space.',
@@ -416,6 +542,19 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
+    id: 'barnard',
+    teaser: 'A dim red star racing across the sky.',
+    name: 'Barnard's Star',
+    distanceAu: 5.96 * auPerLightYear,
+    distanceLabel: '6 light-years',
+    look: BodyLook(BodyStyle.star, 0xFFFF6A4D, 0xFFFFB199),
+    radius: 28,
+    facts: [
+      'Barnard\'s Star moves across our sky faster than any other star.',
+      'It is a small, old red dwarf, one of the Sun\'s closest neighbours.',
+    ],
+  ),
+  Landmark(
     id: 'sirius',
     teaser: 'The brightest light in your night sky… and it is not alone.',
     name: 'Sirius',
@@ -429,6 +568,59 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
+    id: 'eps_eri',
+    teaser: 'A young orange sun, still wrapped in dust.',
+    name: 'Epsilon Eridani',
+    distanceAu: 10.5 * auPerLightYear,
+    distanceLabel: '10.5 light-years',
+    look: BodyLook(BodyStyle.star, 0xFFFFB86B, 0xFFFFE2B8),
+    radius: 30,
+    facts: [
+      'Epsilon Eridani is younger than the Sun and still surrounded by rings of dust.',
+      'A giant planet circles it, one of the closest known exoplanets.',
+    ],
+  ),
+  Landmark(
+    id: 'vega',
+    teaser: 'A brilliant blue-white star that once guided travellers north.',
+    name: 'Vega',
+    distanceAu: 25.0 * auPerLightYear,
+    distanceLabel: '25 light-years',
+    look: BodyLook(BodyStyle.star, 0xFFBFD6FF, 0xFFFFFFFF),
+    radius: 38,
+    facts: [
+      'Around 14,000 years ago Vega was the North Star, and it will be again in about 12,000 years.',
+      'It spins so fast that it bulges at its equator.',
+    ],
+  ),
+  Landmark(
+    id: 'trappist1',
+    teaser: 'Seven worlds circling one small red sun.',
+    name: 'TRAPPIST-1',
+    distanceAu: 40.7 * auPerLightYear,
+    distanceLabel: '40 light-years',
+    look: BodyLook(BodyStyle.star, 0xFFFF5A3A, 0xFFFFA080),
+    radius: 34,
+    facts: [
+      'TRAPPIST-1 has seven rocky, Earth-sized planets.',
+      'Three of them orbit where liquid water could exist.',
+    ],
+  ),
+  Landmark(
+    id: 'pleiades',
+    teaser: 'Seven sisters, glowing blue in the dark.',
+    name: 'The Pleiades',
+    distanceAu: 444.0 * auPerLightYear,
+    distanceLabel: '≈440 light-years',
+    look: BodyLook(BodyStyle.nebula, 0xFF8FB8FF, 0xFF5C7CFF),
+    radius: 44,
+    region: _orionArm,
+    facts: [
+      'The Pleiades are a cluster of young, hot blue stars about 100 million years old.',
+      'Japan calls this cluster Subaru, and the car company\'s logo shows its stars.',
+    ],
+  ),
+  Landmark(
     id: 'betelgeuse',
     teaser: 'A dying giant, swollen and red.',
     name: 'Betelgeuse',
@@ -436,7 +628,6 @@ const List<Landmark> journey = [
     distanceLabel: '≈550 light-years',
     look: BodyLook(BodyStyle.star, 0xFFFF5A2E, 0xFFFFA070),
     radius: 50,
-    region: _orionArm,
     facts: [
       'A red supergiant. Placed where the Sun is, it would reach past the orbit of Mars.',
       'Its distance is uncertain: estimates range from about 500 to 700 light-years.',
@@ -454,6 +645,32 @@ const List<Landmark> journey = [
     facts: [
       'A stellar nursery where new stars are being born right now.',
       'You can see it with bare eyes as the fuzzy middle "star" of Orion\'s sword.',
+    ],
+  ),
+  Landmark(
+    id: 'crab',
+    teaser: 'The ghost of an explosion so bright it was seen in daylight.',
+    name: 'Crab Nebula',
+    distanceAu: 6500.0 * auPerLightYear,
+    distanceLabel: '≈6,500 light-years',
+    look: BodyLook(BodyStyle.nebula, 0xFFFF8A5C, 0xFF5CE1FF),
+    radius: 44,
+    facts: [
+      'The Crab Nebula is what remains of a star that exploded; astronomers in China recorded it in 1054.',
+      'At its heart a pulsar spins about 30 times every second.',
+    ],
+  ),
+  Landmark(
+    id: 'omega_cen',
+    teaser: 'Ten million stars packed into one glowing ball.',
+    name: 'Omega Centauri',
+    distanceAu: 17000.0 * auPerLightYear,
+    distanceLabel: '≈17,000 light-years',
+    look: BodyLook(BodyStyle.cloud, 0xFFFFE2A0, 0xFFFFC870),
+    radius: 44,
+    facts: [
+      'Omega Centauri is the largest star cluster in the Milky Way, with about 10 million stars.',
+      'It may be the core of a small galaxy that ours swallowed long ago.',
     ],
   ),
   Landmark(
@@ -485,6 +702,19 @@ const List<Landmark> journey = [
     ],
   ),
   Landmark(
+    id: 'smc',
+    teaser: 'A smaller cloud of stars, sibling of a larger one.',
+    name: 'Small Magellanic Cloud',
+    distanceAu: 200000.0 * auPerLightYear,
+    distanceLabel: '≈200,000 light-years',
+    look: BodyLook(BodyStyle.galaxy, 0xFFC9D6FF, 0xFFFFE9C2, tilt: 0.3),
+    radius: 38,
+    facts: [
+      'The Small Magellanic Cloud is a dwarf galaxy you can see with bare eyes from the Southern Hemisphere.',
+      'It and its larger sibling are named after Ferdinand Magellan, whose crew described them in the 1500s.',
+    ],
+  ),
+  Landmark(
     id: 'andromeda',
     teaser: 'Another galaxy. Hundreds of billions of suns, heading our way.',
     name: 'Andromeda Galaxy',
@@ -496,6 +726,47 @@ const List<Landmark> journey = [
     facts: [
       'The farthest thing most people can see with the naked eye.',
       'Astronomers long expected it to hit the Milky Way; a 2025 study puts the odds near 50% within 10 billion years.',
+    ],
+  ),
+  Landmark(
+    id: 'triangulum',
+    teaser: 'A faint spiral, third in our neighbourhood.',
+    name: 'Triangulum Galaxy',
+    distanceAu: 2.73e6 * auPerLightYear,
+    distanceLabel: '≈2.7 million light-years',
+    look: BodyLook(BodyStyle.galaxy, 0xFFA8C8FF, 0xFFFFD6A8, tilt: 0.2),
+    radius: 44,
+    facts: [
+      'Triangulum is the third-largest galaxy in our Local Group, after Andromeda and the Milky Way.',
+      'Under very dark skies it is one of the most distant things the human eye can see.',
+    ],
+  ),
+  Landmark(
+    id: 'm87',
+    teaser: 'A giant galaxy with a monster at its heart — the first ever seen.',
+    name: 'M87',
+    distanceAu: 5.35e7 * auPerLightYear,
+    distanceLabel: '≈54 million light-years',
+    look: BodyLook(BodyStyle.blackHole, 0xFFFF9A3A, 0xFFFFE0A0, tilt: 0.5),
+    radius: 44,
+    region: _virgo,
+    facts: [
+      'The black hole at the heart of M87 was the first ever photographed, in 2019.',
+      'It weighs about 6.5 billion times as much as the Sun.',
+    ],
+  ),
+  Landmark(
+    id: 'great_attractor',
+    teaser: 'Something unseen is pulling whole galaxies toward it.',
+    name: 'The Great Attractor',
+    distanceAu: 2.0e8 * auPerLightYear,
+    distanceLabel: '≈200 million light-years',
+    look: BodyLook(BodyStyle.nebula, 0xFFC77DFF, 0xFF5CE1FF),
+    radius: 46,
+    region: _cosmicWeb,
+    facts: [
+      'The Great Attractor is a huge concentration of mass pulling our galaxy and thousands of others toward it.',
+      'It hides behind the dust of the Milky Way, so it is very hard to see directly.',
     ],
   ),
   Landmark(
@@ -514,47 +785,213 @@ const List<Landmark> journey = [
   ),
 ];
 
-/// Hops (planets) between two landmarks.
-const int hopsPerLandmark = 6;
+/// Hops (planets) between two real places.
+const int hopsPerLandmark = 4;
+
+// ------------------------------------------------------------------ beyond
+
+const _beyondRegions = [
+  Region(
+    name: 'The Lumen Expanse',
+    mood: Mood.cosmic,
+    topArgb: 0xFF020A12,
+    bottomArgb: 0xFF06303A,
+    fillers: [_nebulaTeal, _starWhite, _galaxyBlue],
+    backdrop: Backdrop.galaxies,
+  ),
+  Region(
+    name: 'The Glass Reaches',
+    mood: Mood.deep,
+    topArgb: 0xFF0A0418,
+    bottomArgb: 0xFF2A0E44,
+    fillers: [_nebulaPink, _starBlue, _icePale],
+    backdrop: Backdrop.galaxies,
+  ),
+  Region(
+    name: 'The Dreaming Void',
+    mood: Mood.deep,
+    topArgb: 0xFF010103,
+    bottomArgb: 0xFF0C0A1E,
+    fillers: [_starRed, _galaxyGold, _cometIce],
+    backdrop: Backdrop.galaxies,
+  ),
+];
+
+class _WorldType {
+  const _WorldType(this.kind, this.style, this.colors, this.teaser, this.lore);
+
+  final String kind;
+  final BodyStyle style;
+  final List<(int, int)> colors;
+  final String teaser;
+  final List<String> lore;
+}
+
+const _worldTypes = <_WorldType>[
+  _WorldType('Ocean World', BodyStyle.earth, [(0xFF1FB5C9, 0xFF2EE6A6), (0xFF3D5BFF, 0xFF7CF5FF)],
+      'A world of endless water, glowing from below.',
+      ['Its whole surface is one ocean, lit by creatures of light.', 'The Lumen say storms here can last a thousand years.']),
+  _WorldType('Crystal Planet', BodyStyle.icy, [(0xFFFF9BE0, 0xFF9A5CFF), (0xFF9BF0FF, 0xFF5C7CFF)],
+      'Something ahead is sparkling like a gem.',
+      ['Its mountains are giant crystals that ring when starlight hits them.', 'The Lumen come here to listen to the planet "sing".']),
+  _WorldType('Ringed Giant', BodyStyle.ringed, [(0xFFFFC97A, 0xFFB86A3A), (0xFFB5FFDD, 0xFF4FA88A)],
+      'Rings upon rings, wider than any you have seen.',
+      ['Its rings are so wide that a comet could orbit inside them for a year.', 'Tiny moons herd the rings like shepherds.']),
+  _WorldType('Twin Suns', BodyStyle.star, [(0xFFFFB86B, 0xFFFFF1C9), (0xFF8FB8FF, 0xFFFFFFFF)],
+      'Two lights, dancing around each other.',
+      ['Two stars locked in a dance, each circling the other.', 'Worlds near them have two sunrises every day.']),
+  _WorldType('Living Nebula', BodyStyle.nebula, [(0xFF4FE3C1, 0xFFFF6FB5), (0xFFFFD166, 0xFF7A5CFF)],
+      'A cloud that seems to breathe.',
+      ['This cloud of gas glows and dims slowly, as if it were breathing.', 'The Lumen believe new kinds of stars are born here.']),
+  _WorldType('Glass Galaxy', BodyStyle.galaxy, [(0xFFE0F7FF, 0xFFB5C8FF), (0xFFFFE0F0, 0xFFC77DFF)],
+      'A galaxy you can almost see through.',
+      ['Its stars are so spread out that the whole galaxy looks like glass.', 'Light passing through it bends into rainbows.']),
+  _WorldType('Lumen Beacon', BodyStyle.cloud, [(0xFF7CF5FF, 0xFFFFFFFF), (0xFFFFE2A0, 0xFFFFFFFF)],
+      'A steady light, too regular to be natural.',
+      ['A signal tower of the Lumen, guiding travellers through the dark.', 'Every comet that passes is given a name and remembered here.']),
+  _WorldType('Silent Black Hole', BodyStyle.blackHole, [(0xFF9A7CFF, 0xFFE0D0FF), (0xFFFF6FB5, 0xFFFFD0E8)],
+      'A circle of nothing, ringed with fire.',
+      ['A black hole with a glowing ring, eating nothing at all, just waiting.', 'The Lumen fly around it to slingshot between galaxies.']),
+  _WorldType('Ember World', BodyStyle.mars, [(0xFFFF6A3D, 0xFF7A1E10), (0xFFFFA24C, 0xFF8C3A1E)],
+      'A red glow, warm as a campfire in space.',
+      ['Rivers of glowing rock cross this world.', 'Even here, far beyond the map, something is still warm.']),
+];
+
+const _syllables = ['Ka', 'Lu', 'Vor', 'Ae', 'Thi', 'Zen', 'Ora', 'Qui', 'Sel', 'Nyx', 'Iri', 'Mo', 'Ves', 'Ul', 'Ry', 'Xa'];
+const _endings = ['ra', 'on', 'is', 'ae', 'ix', 'um', 'el', 'ar'];
+
+/// Number of real places in the journey.
+int get realPlaces => journey.length;
+
+final Map<int, Landmark> _generated = {};
+
+Landmark _uncharted(int k) => _generated.putIfAbsent(k, () {
+      final n = k - realPlaces; // 0, 1, 2…
+      final rng = math.Random(n * 7919 + 101);
+      final type = _worldTypes[rng.nextInt(_worldTypes.length)];
+      final (a, b) = type.colors[rng.nextInt(type.colors.length)];
+      final name = '${_syllables[rng.nextInt(_syllables.length)]}'
+          '${_syllables[rng.nextInt(_syllables.length)].toLowerCase()}'
+          '${_endings[rng.nextInt(_endings.length)]}';
+      return Landmark(
+        id: 'beyond_$n',
+        name: '$name ${type.kind}',
+        distanceAu: journey.last.distanceAu,
+        distanceLabel: 'Uncharted',
+        look: BodyLook(type.style, a, b, tilt: rng.nextDouble() * 0.6, spot: rng.nextBool()),
+        radius: 30 + rng.nextDouble() * 16,
+        facts: type.lore,
+        teaser: type.teaser,
+        real: false,
+        region: n % 5 == 1 ? _beyondRegions[(n ~/ 5) % _beyondRegions.length] : null,
+      );
+    });
+
+// ------------------------------------------------------------------ chapters
+
+/// A milestone: finishing a chapter of the journey pays a big reward.
+class Chapter {
+  const Chapter(this.title, this.endId, this.reward);
+
+  final String title;
+
+  /// Reaching this place completes the chapter.
+  final String endId;
+  final int reward;
+}
+
+const chapters = <Chapter>[
+  Chapter('The Inner Planets', 'mars', 100),
+  Chapter('The Giants', 'neptune', 200),
+  Chapter('Edge of the Solar System', 'oort', 300),
+  Chapter('Neighbour Stars', 'trappist1', 400),
+  Chapter('The Milky Way', 'sgr_a', 600),
+  Chapter('Other Galaxies', 'great_attractor', 800),
+  Chapter('The Edge of Everything', 'edge', 1000),
+];
+
+/// After the edge: an endless chain of expeditions, one per 8 uncharted worlds.
+const int unchartedPerExpedition = 8;
+
+// ------------------------------------------------------------------ story
+
+/// "The Signal": the story told through transmissions. Fiction, kept
+/// separate from the true facts on each place.
+class Transmission {
+  const Transmission(this.from, this.text, {this.fragment});
+
+  final String from;
+  final String text;
+
+  /// Which part of the signal this decodes (null = no new fragment).
+  final int? fragment;
+}
+
+const int signalFragments = 8;
+
+const transmissions = <String, Transmission>{
+  'sun': Transmission('MISSION CONTROL',
+      'Little comet, our telescopes caught a faint signal repeating from far beyond the stars. Nobody knows who sent it. Follow it.'),
+  'earth': Transmission('MISSION CONTROL',
+      'The signal is not from Earth. It comes from deep space, and it grows stronger the further out you go.'),
+  'jupiter': Transmission('SIGNAL · FRAGMENT 1',
+      'Decoded: 2, 3, 5, 7, 11, 13… prime numbers. Nature does not count in primes. Someone made this.', fragment: 1),
+  'voyager1': Transmission('SIGNAL · FRAGMENT 2',
+      'The rhythm matches the golden record Voyager carries. They heard our message… and they are answering.',
+      fragment: 2),
+  'proxima': Transmission('SIGNAL · FRAGMENT 3',
+      'A picture forms: a spiral of stars, with one tiny point marked. Not our Sun. Somewhere much further.',
+      fragment: 3),
+  'trappist1': Transmission('SIGNAL · FRAGMENT 4',
+      'The signal pulses seven times, then stops. Then one word: "MANY". Are there many of them?', fragment: 4),
+  'orion_nebula': Transmission('SIGNAL · FRAGMENT 5',
+      '"WE WERE BORN IN CLOUDS LIKE THIS." They are old. Older than our Sun.', fragment: 5),
+  'sgr_a': Transmission('SIGNAL · FRAGMENT 6',
+      'The signal curves around the black hole; it was aimed to bend. "FOLLOW THE LIGHT THAT BENDS."', fragment: 6),
+  'andromeda': Transmission('SIGNAL · FRAGMENT 7',
+      '"YOU ARE CLOSE. LOOK BEYOND THE OLDEST LIGHT." Beyond the edge of the universe?', fragment: 7),
+  'edge': Transmission('SIGNAL · FINAL FRAGMENT',
+      '"WELCOME, TRAVELLER." The source lies past the edge of everything we know. Keep going.', fragment: 8),
+  'beyond_0': Transmission('FIRST CONTACT',
+      'Beings of pure light surround you. "We are the Lumen. Every comet that reaches us is given a name. '
+          'The universe never ends, little one. Neither should you."'),
+};
 
 abstract final class Cosmos {
-  /// Landmark index if planet [index] is a real landmark, otherwise null.
-  static int? landmarkAt(int index) {
-    if (index % hopsPerLandmark != 0) return null;
-    final k = index ~/ hopsPerLandmark;
-    return k < journey.length ? k : null;
-  }
+  /// Any place on the endless journey: real for the first [realPlaces],
+  /// then generated uncharted worlds forever.
+  static Landmark place(int k) => k < realPlaces ? journey[k] : _uncharted(k);
+
+  /// Landmark index if planet [index] is a landmark (every [hopsPerLandmark]).
+  static int? landmarkAt(int index) => index % hopsPerLandmark == 0 ? index ~/ hopsPerLandmark : null;
 
   /// Index of the last landmark at or before planet [index].
-  static int lastLandmarkBefore(int index) =>
-      math.min(index ~/ hopsPerLandmark, journey.length - 1);
+  static int lastLandmarkBefore(int index) => index ~/ hopsPerLandmark;
 
   static Region regionAt(int index) {
     for (var k = lastLandmarkBefore(index); k >= 0; k--) {
-      final r = journey[k].region;
+      final r = place(k).region;
       if (r != null) return r;
     }
     return journey.first.region!;
   }
 
-  static bool isBeyondMap(int index) => index > (journey.length - 1) * hopsPerLandmark;
+  static int get edgeIndex => (realPlaces - 1) * hopsPerLandmark;
 
-  /// Next landmark still ahead of planet [index], or null past the map.
-  static Landmark? nextLandmark(int index) {
-    final k = index ~/ hopsPerLandmark + 1;
-    return k < journey.length ? journey[k] : null;
-  }
+  static bool isBeyondMap(int index) => index > edgeIndex;
+
+  /// Next landmark ahead of planet [index] (there is always one).
+  static Landmark nextLandmark(int index) => place(index ~/ hopsPerLandmark + 1);
 
   /// 0..1 progress from the previous landmark to the next.
-  static double progressToNext(int index) =>
-      (index % hopsPerLandmark) / hopsPerLandmark;
+  static double progressToNext(int index) => (index % hopsPerLandmark) / hopsPerLandmark;
 
   /// Real distance from the Sun at planet [index], interpolated between landmarks
   /// on a log scale (space gets emptier the further you go).
   static double distanceAuAt(num index) {
-    final k = lastLandmarkBefore(index.floor());
+    final k = math.min(lastLandmarkBefore(index.floor()), realPlaces - 1);
     final a = journey[k].distanceAu;
-    if (k == journey.length - 1) return a;
+    if (k == realPlaces - 1) return a;
     final b = journey[k + 1].distanceAu;
     final f = ((index - k * hopsPerLandmark) / hopsPerLandmark).clamp(0.0, 1.0);
     if (a <= 0) return b * f;
@@ -572,29 +1009,103 @@ abstract final class Cosmos {
     return '${(ly / 1e9).toStringAsFixed(1)} billion light-years';
   }
 
-  static String distanceLabelAt(num index) =>
-      isBeyondMap(index.floor()) ? 'Beyond the observable universe' : formatDistance(distanceAuAt(index));
+  static String distanceLabelAt(num index) {
+    final i = index.floor();
+    if (!isBeyondMap(i)) return formatDistance(distanceAuAt(index));
+    final hops = i - edgeIndex;
+    return 'Uncharted · $hops hop${hops == 1 ? '' : 's'} past the edge';
+  }
 
-  /// Explorer rank earned by reaching journey landmark [k].
+  // ------------------------------------------------------------- ranks
+
+  static const _rankSteps = <(String, String)>[
+    ('earth', 'Planet Hopper'),
+    ('vesta', 'Belt Runner'),
+    ('jupiter', 'Giant Rider'),
+    ('neptune', 'Edge Walker'),
+    ('voyager2', 'Interstellar Voyager'),
+    ('proxima', 'Star Sailor'),
+    ('orion_nebula', 'Galaxy Wanderer'),
+    ('lmc', 'Cosmic Navigator'),
+    ('edge', 'Master of the Universe'),
+  ];
+
+  /// Explorer rank earned by reaching landmark [k].
   static String rankFor(int k) {
-    if (k >= journey.length - 1) return 'Master of the Universe';
-    if (k >= 18) return 'Cosmic Navigator';
-    if (k >= 16) return 'Galaxy Wanderer';
-    if (k >= 13) return 'Star Sailor';
-    if (k >= 11) return 'Interstellar Voyager';
-    if (k >= 9) return 'Edge Walker';
-    if (k >= 6) return 'Giant Rider';
-    if (k >= 5) return 'Belt Runner';
-    if (k >= 3) return 'Planet Hopper';
-    return 'Solar Cadet';
+    if (k >= realPlaces) {
+      final n = k - realPlaces;
+      if (n >= 40) return 'Legend of the Void';
+      if (n >= 16) return 'Multiverse Pioneer';
+      return 'Friend of the Lumen';
+    }
+    var rank = 'Solar Cadet';
+    for (final (id, title) in _rankSteps) {
+      if (k >= indexOfId(id)) rank = title;
+    }
+    return rank;
   }
 
   /// True when reaching landmark [k] earns a new rank.
   static bool isRankUp(int k) => k > 0 && rankFor(k) != rankFor(k - 1);
 
+  // ------------------------------------------------------------- milestones
+
+  /// The milestone completed by reaching landmark [k], if any.
+  static Chapter? chapterEndingAt(int k) {
+    if (k < realPlaces) {
+      final id = journey[k].id;
+      for (final c in chapters) {
+        if (c.endId == id) return c;
+      }
+      return null;
+    }
+    final n = k - realPlaces + 1; // uncharted worlds found
+    if (n % unchartedPerExpedition != 0) return null;
+    final e = n ~/ unchartedPerExpedition;
+    return Chapter('Uncharted Expedition $e', 'beyond_${n - 1}', 500 + 100 * e);
+  }
+
+  /// The next milestone ahead of [furthest] (index of the furthest place
+  /// discovered), with how many places are still left to reach it.
+  static (Chapter, int) nextChapter(int furthest) {
+    for (final c in chapters) {
+      final end = indexOfId(c.endId);
+      if (end > furthest) return (c, end - furthest);
+    }
+    var k = math.max(furthest + 1, realPlaces);
+    while (chapterEndingAt(k) == null) {
+      k++;
+    }
+    return (chapterEndingAt(k)!, k - furthest);
+  }
+
+  // ------------------------------------------------------------- story
+
+  static Transmission? transmissionAt(int k) => transmissions[place(k).id];
+
+  /// Signal fragments decoded so far, given the furthest place discovered.
+  static int fragmentsDecoded(bool Function(int k) discovered) {
+    var n = 0;
+    for (final entry in transmissions.entries) {
+      final f = entry.value.fragment;
+      if (f != null && discovered(indexOfId(entry.key))) n++;
+    }
+    return n;
+  }
+
+  // ------------------------------------------------------------- ids
+
+  static final Map<String, int> _realIndex = {for (var k = 0; k < journey.length; k++) journey[k].id: k};
+
+  /// Journey index for a place id (real or 'beyond_n'); unknown ids map to 0.
   static int indexOfId(String id) {
-    final k = journey.indexWhere((l) => l.id == id);
-    return k < 0 ? 0 : k;
+    final real = _realIndex[id];
+    if (real != null) return real;
+    if (id.startsWith('beyond_')) {
+      final n = int.tryParse(id.substring(7));
+      if (n != null && n >= 0) return realPlaces + n;
+    }
+    return 0;
   }
 
   static String _group(int n) {

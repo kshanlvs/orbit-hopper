@@ -23,7 +23,7 @@ class LevelGenerator {
 
   /// Real places are calm rest stops: big, stable, no moons, no drift.
   Planet _landmark(int k, Offset center) {
-    final l = journey[k];
+    final l = Cosmos.place(k);
     return Planet(
       index: k * hopsPerLandmark,
       baseCenter: center,
@@ -91,7 +91,7 @@ class LevelGenerator {
   }
 
   Planet _nextLandmark(Planet prev, int k) {
-    final l = journey[k];
+    final l = Cosmos.place(k);
     final outer = l.radius + 30.0;
     final margin = outer + 8;
     final x = width - margin > margin ? _range(margin, width - margin) : width / 2;
@@ -112,7 +112,9 @@ class LevelGenerator {
     if (b.landmark != null || a.landmark != null || !(asteroidsEverywhere || Cosmos.regionAt(b.index).asteroids)) {
       return const <Asteroid>[];
     }
-    final count = _rng.nextDouble() < 0.4 ? 2 : 1;
+    // Roughly every other gap, one rock at a time: a hazard, not a wall.
+    if (_rng.nextDouble() > (asteroidsEverywhere ? 0.4 : 0.5)) return const <Asteroid>[];
+    const count = 1;
     final dir = _rng.nextBool() ? 1.0 : -1.0;
     return [
       for (var i = 0; i < count; i++)
@@ -121,7 +123,7 @@ class LevelGenerator {
             _range(0, width),
             a.baseCenter.dy + (b.baseCenter.dy - a.baseCenter.dy) * _range(0.42, 0.58),
           ),
-          speed: dir * _range(55, 105) * (i.isEven ? 1 : 0.8),
+          speed: dir * _range(45, 85),
           radius: _range(7, 11),
           spin: _range(-2, 2),
           seed: _rng.nextInt(1000),

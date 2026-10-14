@@ -151,7 +151,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
   void _handleDepart(int landmarkIndex) {
     if (landmarkIndex == 0) _progress.discover(journey[0].id); // counts the Sun
     if (widget.defenseMode) {
-      _progress.discover(journey[landmarkIndex].id); // Earth counts as found
+      _progress.discover(Cosmos.place(landmarkIndex).id); // Earth counts as found
       return; // the briefing card replaces the departure card
     }
     if (_lastDepartureShown == landmarkIndex || _run.isClosed) return;
@@ -160,10 +160,12 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleDiscovery(int landmarkIndex) async {
-    final landmark = journey[landmarkIndex];
+    final landmark = Cosmos.place(landmarkIndex);
     final isNew = await _progress.discover(landmark.id);
     if (!mounted || _run.isClosed) return;
     if (isNew) {
+      await _progress.claimMilestone(landmarkIndex);
+      if (!mounted || _run.isClosed) return;
       _newDiscoveries++;
       final s = _stats;
       if (s != null) _handleStats(s);

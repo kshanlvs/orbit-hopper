@@ -173,7 +173,7 @@ class GameOverPanel extends StatelessWidget {
                   ? 'TRY AGAIN'
                   : from == 0
                       ? 'RETRY'
-                      : 'FROM ${journey[from].name.toUpperCase()}',
+                      : 'FROM ${Cosmos.place(from).name.toUpperCase()}',
               icon: Icons.replay_rounded,
               width: 270,
               onPressed: onRetry,
@@ -257,8 +257,7 @@ class _SoClose extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final next = Cosmos.nextLandmark(bestIndex);
-    if (next == null) return const SizedBox(height: 4);
-    final k = journey.indexOf(next);
+    final k = bestIndex ~/ hopsPerLandmark + 1;
     final known = context.read<ProgressCubit>().isDiscovered(k);
     final hops = k * hopsPerLandmark - bestIndex;
     const signal = Color(0xFF7CF5FF);
@@ -295,7 +294,7 @@ class _SoClose extends StatelessWidget {
 
 String _reachedLabel(int bestIndex) {
   if (bestIndex == 0) return 'STILL AT THE SUN';
-  final last = journey[Cosmos.lastLandmarkBefore(bestIndex)].name.toUpperCase();
+  final last = Cosmos.place(Cosmos.lastLandmarkBefore(bestIndex)).name.toUpperCase();
   return Cosmos.landmarkAt(bestIndex) != null ? 'REACHED $last' : 'BEYOND $last';
 }
 

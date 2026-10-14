@@ -38,8 +38,6 @@ class ProgressCubit extends Cubit<PlayerProgress> {
 
   Mission _newMission(int serial, List<Mission> active) {
     final exclude = {for (final m in active) m.kind};
-    final allFound = [for (var k = 1; k < journey.length; k++) isDiscovered(k)].every((d) => d);
-    if (allFound) exclude.add(MissionKind.discover);
     return Mission.generate(serial: serial, completed: state.missionsCompleted, exclude: exclude);
   }
 
@@ -77,10 +75,28 @@ class ProgressCubit extends Cubit<PlayerProgress> {
   /// Furthest real place ever discovered (journey index).
   int get furthestDiscovered {
     var best = 0;
-    for (var k = 1; k < journey.length; k++) {
-      if (isDiscovered(k)) best = k;
+    for (final id in state.discoveredIds) {
+      final k = Cosmos.indexOfId(id);
+      if (k > best) best = k;
     }
     return best;
+  }
+
+  /// Signal fragments decoded (the alien story).
+  int get fragmentsDecoded => Cosmos.fragmentsDecoded(isDiscovered);
+
+  /// Uncharted worlds found beyond the edge.
+  int get unchartedFound => state.discoveredIds.where((id) => id.startsWith('beyond_')).length;
+
+  /// Pays a milestone reward when [landmarkIndex] completes a chapter.
+  /// Call once, on the first discovery of that place.
+  Future<Chapter?> claimMilestone(int landmarkIndex) async {
+    final c = Cosmos.chapterEndingAt(landmarkIndex);
+    if (c == null) return null;
+    final next = state.copyWith(stardust: state.stardust + c.reward);
+    emit(next);
+    await _repository.save(next);
+    return c;
   }
 
   String get rank => Cosmos.rankFor(furthestDiscovered);
@@ -132,11 +148,11 @@ class ProgressCubit extends Cubit<PlayerProgress> {
   }
 
   bool isDiscovered(int landmarkIndex) =>
-      landmarkIndex == 0 || state.discoveredIds.contains(journey[landmarkIndex].id);
+      landmarkIndex == 0 || state.discoveredIds.contains(Cosmos.place(landmarkIndex).id);
 
   Future<void> setLaunchFrom(int landmarkIndex) async {
     if (!isDiscovered(landmarkIndex)) return;
-    final next = state.copyWith(launchFromId: journey[landmarkIndex].id);
+    final next = state.copyWith(launchFromId: Cosmos.place(landmarkIndex).id);
     emit(next);
     await _repository.save(next);
   }

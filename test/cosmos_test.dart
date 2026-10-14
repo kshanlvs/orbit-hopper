@@ -26,7 +26,8 @@ void main() {
     }
     expect(Cosmos.distanceAuAt(3 * hopsPerLandmark), 1.0); // Earth
     expect(Cosmos.isBeyondMap(last + 1), isTrue);
-    expect(Cosmos.nextLandmark(last), isNull);
+    // The journey never ends: past the edge come uncharted worlds.
+    expect(Cosmos.nextLandmark(last).real, isFalse);
   });
 
   test('distances are formatted in AU, then light-years', () {
@@ -54,5 +55,53 @@ void main() {
         expect(p.landmark, isNull);
       }
     }
+  });
+
+  test('uncharted worlds are endless, stable and named', () {
+    final a = Cosmos.place(realPlaces + 5);
+    final b = Cosmos.place(realPlaces + 5);
+    expect(identical(a, b), isTrue);
+    expect(a.real, isFalse);
+    expect(a.id, 'beyond_5');
+    expect(Cosmos.indexOfId(a.id), realPlaces + 5);
+    expect(Cosmos.place(realPlaces + 500).name, isNotEmpty);
+    expect(Cosmos.indexOfId('nonsense'), 0);
+  });
+
+  test('every chapter ends on a real place, in journey order', () {
+    var last = 0;
+    for (final c in chapters) {
+      final k = Cosmos.indexOfId(c.endId);
+      expect(k, greaterThan(last), reason: c.title);
+      expect(Cosmos.chapterEndingAt(k)?.title, c.title);
+      last = k;
+    }
+    expect(Cosmos.chapterEndingAt(realPlaces + unchartedPerExpedition - 1), isNotNull);
+    expect(Cosmos.chapterEndingAt(realPlaces + 1), isNull);
+  });
+
+  test('next milestone is always ahead', () {
+    for (final f in [0, 5, 20, realPlaces - 1, realPlaces + 3, realPlaces + 30]) {
+      final (chapter, left) = Cosmos.nextChapter(f);
+      expect(left, greaterThan(0), reason: 'from $f: ${chapter.title}');
+    }
+  });
+
+  test('the signal is decoded in order along the journey', () {
+    var lastIndex = -1;
+    var lastFragment = 0;
+    for (final e in transmissions.entries) {
+      final k = Cosmos.indexOfId(e.key);
+      expect(k, greaterThanOrEqualTo(lastIndex), reason: e.key);
+      lastIndex = k;
+      final f = e.value.fragment;
+      if (f != null) {
+        expect(f, lastFragment + 1);
+        lastFragment = f;
+      }
+    }
+    expect(lastFragment, signalFragments);
+    expect(Cosmos.fragmentsDecoded((k) => true), signalFragments);
+    expect(Cosmos.fragmentsDecoded((k) => k == 0), 0);
   });
 }

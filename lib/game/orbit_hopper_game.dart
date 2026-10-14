@@ -609,7 +609,7 @@ class OrbitHopperGame extends FlameGame {
 
     // Labels under real places
     if (k != null) {
-      final l = journey[k];
+      final l = Cosmos.place(k);
       final y1 = p.center + Offset(0, p.orbitRadius + 16);
       final y2 = p.center + Offset(0, p.orbitRadius + 32);
       if (unknown) {
@@ -815,7 +815,7 @@ class OrbitHopperGame extends FlameGame {
         fontSize: 16, color: Colors.white, letterSpacing: 5, opacity: a, glow: true);
     final sub = sim.startLandmark == 0
         ? 'Fly from the Sun to the edge of the universe'
-        : 'Departing ${journey[sim.startLandmark].name}';
+        : 'Departing ${Cosmos.place(sim.startLandmark).name}';
     TextSprites.draw(canvas, sub, Offset(w / 2, h * 0.5 + 26),
         fontSize: 12, color: AppColors.textDim, opacity: 0.9, weight: FontWeight.w600);
   }

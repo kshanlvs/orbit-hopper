@@ -44,7 +44,7 @@ class GameWorld {
     int? seed,
     int startLandmark = 0,
     DefenseConfig? defense,
-  })  : startLandmark = startLandmark.clamp(0, journey.length - 1).toInt(),
+  })  : startLandmark = math.max(0, startLandmark),
         defense = defense == null ? null : DefenseState(defense),
         _generator = LevelGenerator(width: width, seed: seed, asteroidsEverywhere: defense != null) {
     _reset();
