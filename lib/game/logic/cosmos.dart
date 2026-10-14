@@ -548,7 +548,7 @@ const List<Landmark> journey = [
   Landmark(
     id: 'barnard',
     teaser: 'A dim red star racing across the sky.',
-    name: 'Barnard's Star',
+    name: "Barnard's Star",
     distanceAu: 5.96 * auPerLightYear,
     distanceLabel: '6 light-years',
     look: BodyLook(BodyStyle.star, 0xFFFF6A4D, 0xFFFFB199),

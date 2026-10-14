@@ -323,7 +323,8 @@ class GameWorld {
     final skipped = p.index - bestIndex; // jumping over planets pays extra
     final perfect = radialShare < perfectRadialLimit;
     combo = perfect ? combo + 1 : 0;
-    final points = skipped + (perfect ? math.min(combo, 5) : 0);
+    final int bonus = perfect ? math.min(combo, 5) : 0;
+    final points = skipped + bonus;
     final oldRegion = region;
     bestIndex = p.index;
     score += points;
