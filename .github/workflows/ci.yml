@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   analyze-test-build:
     runs-on: ubuntu-latest
@@ -38,7 +41,7 @@ jobs:
         id: test
         run: |
           set +e
-          flutter test > test.txt 2>&1
+          flutter test --reporter expanded > test.txt 2>&1
           code=$?
           echo "code=$code" >> "$GITHUB_OUTPUT"
           grep -vE "^\s*$" test.txt | grep -E "STAT|\[E\]|Error|error|Expected|Actual|failed|Some tests|All tests|\.dart" | head -150 > test_short.txt
@@ -66,3 +69,17 @@ jobs:
           echo "analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}"
           echo "::notice title=result::analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}"
           test "${{ steps.analyze.outputs.code }}" = "0" && test "${{ steps.test.outputs.code }}" = "0" && test "${{ steps.apk.outputs.code }}" = "0"
+      - name: Publish logs to a ci-results branch
+        if: always()
+        run: |
+          mkdir -p /tmp/out
+          cp analyze.txt test.txt build.txt /tmp/out/ 2>/dev/null || true
+          cd /tmp/out
+          echo "${{ github.sha }} analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}" > RESULT
+          git init -q
+          git checkout -q -b results
+          git config user.email ci@users.noreply.github.com
+          git config user.name ci
+          git add -A
+          git commit -qm "CI logs for ${{ github.sha }}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" results:ci-results-${{ github.ref_name }}

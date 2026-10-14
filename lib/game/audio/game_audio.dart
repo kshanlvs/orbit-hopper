@@ -89,6 +89,9 @@ class GameAudio with WidgetsBindingObserver {
   bool _ready = false;
   bool _observing = false;
 
+  /// True while another game (Neon Shift) owns the speakers.
+  bool _suspended = false;
+
   bool get enabled => _enabled;
 
   Future<void> init({required bool enabled, Mood mood = Mood.solar}) async {
@@ -114,7 +117,7 @@ class GameAudio with WidgetsBindingObserver {
   }
 
   void play(Sfx sfx) {
-    if (_enabled && _ready) _pools[sfx.file]?.play();
+    if (_enabled && _ready && !_suspended) _pools[sfx.file]?.play();
   }
 
   /// Rising chime: combo 1..5 maps to five ascending notes.
@@ -126,7 +129,7 @@ class GameAudio with WidgetsBindingObserver {
 
   /// Starts music if it isn't running yet (safe to call often).
   Future<void> startMusic() async {
-    if (!_enabled || _musicStarted) return;
+    if (!_enabled || _musicStarted || _suspended) return;
     _musicStarted = true;
     await _crossfadeTo(_mood);
   }
@@ -135,7 +138,7 @@ class GameAudio with WidgetsBindingObserver {
   Future<void> setMood(Mood mood) async {
     if (mood == _mood && _musicStarted) return;
     _mood = mood;
-    if (!_enabled) return;
+    if (!_enabled || _suspended) return;
     _musicStarted = true;
     await _crossfadeTo(mood);
   }
@@ -161,6 +164,27 @@ class GameAudio with WidgetsBindingObserver {
           await _music[i].stop();
         } catch (_) {}
       }
+    }
+  }
+
+  /// Silences Orbit Hopper completely (music stops) while another game is
+  /// open, and brings the music back afterwards.
+  Future<void> setSuspended(bool value) async {
+    if (_suspended == value) return;
+    _suspended = value;
+    if (value) {
+      _fadeToken++;
+      _fade?.cancel();
+      _fade = null;
+      _musicStarted = false;
+      for (var i = 0; i < 2; i++) {
+        _vol[i] = 0;
+        try {
+          await _music[i].stop();
+        } catch (_) {}
+      }
+    } else {
+      await startMusic();
     }
   }
 
@@ -209,7 +233,7 @@ class GameAudio with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_musicStarted) return;
+    if (!_musicStarted || _suspended) return;
     if (state == AppLifecycleState.resumed) {
       if (_enabled) _music[_active].resume().catchError((Object _) {});
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
