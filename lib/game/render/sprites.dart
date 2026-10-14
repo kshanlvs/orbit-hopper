@@ -92,11 +92,13 @@ void drawSprite(
 abstract final class BodySprites {
   static final _ImageCache<int> _cache = _ImageCache<int>(56);
 
-  /// Dark, faintly blue silhouette for objects not yet discovered.
+  /// Dim teal "hologram" for objects not yet discovered: hides the true
+  /// colours but keeps the shape visible (a fully dark silhouette made glowy
+  /// objects like nebulae and star clusters vanish against the sky).
   static const ColorFilter silhouette = ColorFilter.matrix(<double>[
-    0.06, 0, 0, 0, 4, //
-    0, 0.06, 0, 0, 7, //
-    0, 0, 0.09, 0, 16, //
+    0.03, 0.06, 0.012, 0, 6, //
+    0.13, 0.26, 0.05, 0, 10, //
+    0.17, 0.33, 0.06, 0, 22, //
     0, 0, 0, 1, 0,
   ]);
 
@@ -143,8 +145,8 @@ abstract final class BodySprites {
       case BodyStyle.sun:
         rotation = time * 0.06;
         scale *= 1 + 0.015 * math.sin(time * 1.7);
-      case BodyStyle.star:
-        scale *= 1 + 0.045 * math.sin(time * 4.5 + seed);
+      case BodyStyle.star || BodyStyle.cluster:
+        scale *= 1 + 0.035 * math.sin(time * 4.5 + seed);
       case BodyStyle.nebula || BodyStyle.blackHole || BodyStyle.cloud:
         scale *= 1 + 0.025 * math.sin(time * 1.3 + seed);
       case BodyStyle.galaxy:

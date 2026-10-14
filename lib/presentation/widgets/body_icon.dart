@@ -79,7 +79,7 @@ class _BodyPainter extends CustomPainter {
     final extra = switch (look.style) {
       BodyStyle.ringed || BodyStyle.blackHole => 0.22,
       BodyStyle.sun || BodyStyle.star => 0.2,
-      BodyStyle.galaxy || BodyStyle.nebula => 0.27,
+      BodyStyle.galaxy || BodyStyle.nebula || BodyStyle.cluster => 0.27,
       _ => 0.32,
     };
     final c = size.center(Offset.zero);

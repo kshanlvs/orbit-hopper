@@ -132,6 +132,8 @@ abstract final class BodyRenderer {
         _star(canvas, c, r, primary, secondary, time, seed);
       case BodyStyle.nebula:
         _nebula(canvas, c, r, primary, secondary, rng, time);
+      case BodyStyle.cluster:
+        _cluster(canvas, c, r, primary, secondary, rng, globular: look.spot);
       case BodyStyle.blackHole:
         _blackHole(canvas, c, r, primary, secondary, look.tilt, time);
       case BodyStyle.galaxy:
@@ -158,6 +160,7 @@ abstract final class BodyRenderer {
         BodyStyle.ringed => 2.3,
         BodyStyle.blackHole => 2.2,
         BodyStyle.nebula => 1.95,
+        BodyStyle.cluster => 1.65,
         BodyStyle.galaxy => 1.75,
         BodyStyle.earth || BodyStyle.venus || BodyStyle.cloud => 1.6,
         _ => 1.5,
@@ -332,19 +335,69 @@ abstract final class BodyRenderer {
   }
 
   static void _nebula(Canvas canvas, Offset c, double r, Color primary, Color secondary, math.Random rng, double time) {
-    for (var i = 0; i < 9; i++) {
-      final o = _randIn(rng, r * 0.8);
+    // A wide haze first, then brighter overlapping clouds, so the shape reads
+    // clearly against any sky.
+    _glow(canvas, c, r * 1.25, primary, 0.35, r * 0.9);
+    for (var i = 0; i < 10; i++) {
+      final o = _randIn(rng, r * 0.75);
       final pulse = 1 + 0.06 * math.sin(time * 1.2 + i);
-      _glow(canvas, c + o, r * (0.45 + rng.nextDouble() * 0.45) * pulse, i.isEven ? primary : secondary, 0.38, r * 0.35);
+      _glow(canvas, c + o, r * (0.4 + rng.nextDouble() * 0.45) * pulse, i.isEven ? primary : secondary, 0.6, r * 0.3);
     }
-    for (var i = 0; i < 16; i++) {
-      final o = _randIn(rng, r * 0.9);
-      _p.color = Colors.white.fade(0.4 + 0.4 * (0.5 + 0.5 * math.sin(time * 3 + i)));
-      canvas.drawCircle(c + o, 0.8 + rng.nextDouble() * 1.4, _p);
+    for (var i = 0; i < 22; i++) {
+      final o = _randIn(rng, r * 0.95);
+      _p.color = Colors.white.fade(0.5 + 0.4 * rng.nextDouble());
+      canvas.drawCircle(c + o, 0.8 + rng.nextDouble() * 1.6, _p);
     }
-    _glow(canvas, c, r * 0.3, Colors.white, 0.9, r * 0.15);
+    _glow(canvas, c, r * 0.45, Colors.white, 0.85, r * 0.25);
     _p.color = Colors.white;
-    canvas.drawCircle(c, r * 0.12, _p);
+    canvas.drawCircle(c, r * 0.14, _p);
+  }
+
+  /// Positions of the seven brightest Pleiades ("Seven Sisters"), roughly as
+  /// they appear in the sky, in units of the body radius.
+  static const _sisters = <Offset>[
+    Offset(-0.55, -0.30),
+    Offset(-0.22, -0.48),
+    Offset(0.08, -0.22),
+    Offset(0.42, -0.42),
+    Offset(0.58, 0.05),
+    Offset(0.12, 0.22),
+    Offset(-0.32, 0.30),
+  ];
+
+  static void _cluster(Canvas canvas, Offset c, double r, Color primary, Color secondary, math.Random rng,
+      {required bool globular}) {
+    _glow(canvas, c, r * 1.35, primary, globular ? 0.45 : 0.32, r);
+    if (globular) {
+      // A dense ball of stars, crowded toward the centre.
+      for (var i = 0; i < 160; i++) {
+        final d = (rng.nextDouble() + rng.nextDouble() + rng.nextDouble() - 1.5).abs() * 0.75 * r;
+        final a = rng.nextDouble() * math.pi * 2;
+        _p.color = (i % 3 == 0 ? Colors.white : secondary).fade(0.55 + 0.45 * rng.nextDouble());
+        canvas.drawCircle(c + Offset(math.cos(a), math.sin(a)) * d, 0.7 + rng.nextDouble() * 1.3, _p);
+      }
+      _glow(canvas, c, r * 0.55, const Color(0xFFFFF4DD), 0.9, r * 0.4);
+      return;
+    }
+    for (var i = 0; i < 36; i++) {
+      _p.color = secondary.fade(0.4 + 0.5 * rng.nextDouble());
+      canvas.drawCircle(c + _randIn(rng, r * 1.1), 0.6 + rng.nextDouble(), _p);
+    }
+    for (var k = 0; k < _sisters.length; k++) {
+      final s = r * (k % 3 == 0 ? 0.13 : 0.10);
+      final p = c + _sisters[k] * r;
+      _glow(canvas, p, s * 3.4, primary, 0.75, s * 2.8);
+      _s
+        ..color = secondary.fade(0.5)
+        ..strokeWidth = math.max(1.0, s * 0.22)
+        ..strokeCap = StrokeCap.round;
+      final l = s * 2.6;
+      canvas.drawLine(p + Offset(-l, 0), p + Offset(l, 0), _s);
+      canvas.drawLine(p + Offset(0, -l), p + Offset(0, l), _s);
+      _s.strokeCap = StrokeCap.butt;
+      _p.color = Colors.white;
+      canvas.drawCircle(p, s, _p);
+    }
   }
 
   static void _blackHole(Canvas canvas, Offset c, double r, Color primary, Color secondary, double tilt, double time) {

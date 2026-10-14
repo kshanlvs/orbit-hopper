@@ -15,6 +15,10 @@ enum BodyStyle {
   cloud,
   star,
   nebula,
+
+  /// A star cluster: seven bright stars (open), or a dense ball when
+  /// [BodyLook.spot] is true (globular).
+  cluster,
   blackHole,
   galaxy,
   cmb,
@@ -612,7 +616,7 @@ const List<Landmark> journey = [
     name: 'The Pleiades',
     distanceAu: 444.0 * auPerLightYear,
     distanceLabel: '≈440 light-years',
-    look: BodyLook(BodyStyle.nebula, 0xFF8FB8FF, 0xFF5C7CFF),
+    look: BodyLook(BodyStyle.cluster, 0xFF8FB8FF, 0xFFE0ECFF),
     radius: 44,
     region: _orionArm,
     facts: [
@@ -666,7 +670,7 @@ const List<Landmark> journey = [
     name: 'Omega Centauri',
     distanceAu: 17000.0 * auPerLightYear,
     distanceLabel: '≈17,000 light-years',
-    look: BodyLook(BodyStyle.cloud, 0xFFFFE2A0, 0xFFFFC870),
+    look: BodyLook(BodyStyle.cluster, 0xFFFFE2A0, 0xFFFFC870, spot: true),
     radius: 44,
     facts: [
       'Omega Centauri is the largest star cluster in the Milky Way, with about 10 million stars.',
