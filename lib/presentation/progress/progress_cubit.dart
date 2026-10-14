@@ -8,6 +8,7 @@ import '../../domain/entities/player_progress.dart';
 import '../../domain/repositories/progress_repository.dart';
 import '../../game/audio/game_audio.dart';
 import '../../game/logic/cosmos.dart';
+import '../../game/logic/models.dart';
 
 /// Long-lived player progress: best score, stardust wallet, skins.
 class ProgressCubit extends Cubit<PlayerProgress> {
@@ -57,6 +58,20 @@ class ProgressCubit extends Cubit<PlayerProgress> {
     );
     emit(next);
     await _repository.save(next);
+  }
+
+  /// Earth saved: pays the reward and raises the threat level.
+  /// Returns the reward that was paid.
+  Future<int> defenseWon(int level) async {
+    final reward = DefenseConfig(level: level).reward;
+    final next = state.copyWith(
+      stardust: state.stardust + reward,
+      defenseLevel: state.defenseLevel + 1,
+      earthsSaved: state.earthsSaved + 1,
+    );
+    emit(next);
+    await _repository.save(next);
+    return reward;
   }
 
   /// Furthest real place ever discovered (journey index).

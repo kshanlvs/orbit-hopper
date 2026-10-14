@@ -133,7 +133,48 @@ class RunStats {
 
 enum CometMode { orbiting, flying, dead }
 
-enum DeathCause { moon, collapse, lost, asteroid }
+enum DeathCause { moon, collapse, lost, asteroid, impact }
+
+/// "Save Earth" mode settings. Higher threat levels need more charge and
+/// give less time.
+class DefenseConfig {
+  const DefenseConfig({required this.level});
+
+  final int level;
+
+  int get chargeNeeded => math.min(16, 8 + 2 * (level - 1));
+  double get timeLimit => math.max(40, 60 - 4.0 * (level - 1));
+  int get reward => 100 + 25 * (level - 1);
+}
+
+/// The giant asteroid heading for Earth. Ram it (fully charged) to deflect it.
+class KillerAsteroid {
+  KillerAsteroid(this.base, this.phase, {this.sway = 40}) : position = base;
+
+  static const double radius = 26;
+
+  final Offset base;
+  final double phase;
+
+  /// Side-to-side sway, limited so it never drifts into a planet's pull.
+  final double sway;
+  Offset position;
+  double angle = 0;
+}
+
+class DefenseState {
+  DefenseState(this.config) : timeLeft = config.timeLimit;
+
+  final DefenseConfig config;
+  double timeLeft;
+  int charge = 0;
+  KillerAsteroid? killer;
+  bool won = false;
+  bool failed = false;
+
+  bool get charged => charge >= config.chargeNeeded;
+  bool get active => !won && !failed;
+}
 
 class Comet {
   CometMode mode = CometMode.orbiting;

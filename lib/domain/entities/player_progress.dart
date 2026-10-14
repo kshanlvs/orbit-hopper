@@ -13,6 +13,8 @@ class PlayerProgress {
     this.missions = const <Mission>[],
     this.missionSerial = 0,
     this.missionsCompleted = 0,
+    this.defenseLevel = 1,
+    this.earthsSaved = 0,
   });
 
   factory PlayerProgress.initial() => const PlayerProgress(
@@ -42,6 +44,10 @@ class PlayerProgress {
   final int missionSerial;
   final int missionsCompleted;
 
+  /// "Save Earth" threat level (goes up after each win) and total wins.
+  final int defenseLevel;
+  final int earthsSaved;
+
   PlayerProgress copyWith({
     int? bestScore,
     int? stardust,
@@ -54,6 +60,8 @@ class PlayerProgress {
     List<Mission>? missions,
     int? missionSerial,
     int? missionsCompleted,
+    int? defenseLevel,
+    int? earthsSaved,
   }) {
     return PlayerProgress(
       bestScore: bestScore ?? this.bestScore,
@@ -67,6 +75,8 @@ class PlayerProgress {
       missions: missions ?? this.missions,
       missionSerial: missionSerial ?? this.missionSerial,
       missionsCompleted: missionsCompleted ?? this.missionsCompleted,
+      defenseLevel: defenseLevel ?? this.defenseLevel,
+      earthsSaved: earthsSaved ?? this.earthsSaved,
     );
   }
 }

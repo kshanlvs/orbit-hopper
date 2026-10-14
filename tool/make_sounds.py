@@ -375,6 +375,30 @@ def mission():
     return buf
 
 
+def alarm():
+    """Impact alarm: two-tone klaxon blip."""
+    buf = np.zeros(int(SR * 0.5))
+    for k, f in enumerate((880, 660)):
+        t = t_axis(0.16)
+        b = np.sign(np.sin(2 * np.pi * f * t)) * 0.35 + np.sin(2 * np.pi * f * 2 * t) * 0.2
+        place(buf, lowpass(b, 3000) * env(len(t), 0.004, 0.08), k * 0.17)
+    return buf
+
+
+def victory():
+    """Earth saved: huge boom, then a triumphant major fanfare."""
+    dur = 3.2
+    buf = np.zeros(int(SR * dur))
+    n = int(SR * 1.4)
+    place(buf, lowpass(rng.standard_normal(n), 700) * env(n, 0.002, 0.35) * 0.9, 0)
+    place(buf, sweep(120, 35, 1.4) * env(n, 0.002, 0.45) * 1.1, 0)
+    for k, m in enumerate([60, 64, 67, 72]):
+        place(buf, tone(note(m), 1.2, 0.5, (1, 0.45, 0.2, 0.08)) * 0.45, 0.7 + k * 0.12)
+    for m in (72, 76, 79, 84):
+        place(buf, tone(note(m), 2.0, 0.9, (1, 0.4, 0.15)) * 0.32, 1.25)
+    return buf
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     save('launch.wav', launch(), 0.6)
@@ -394,6 +418,8 @@ def main():
     save('shield.wav', shield(), 0.6)
     save('shield_break.wav', shield_break(), 0.75)
     save('mission.wav', mission(), 0.65)
+    save('alarm.wav', alarm(), 0.55)
+    save('victory.wav', victory(), 0.92)
 
     # One looping track per mood. WAV (not mp3) so loops are gapless;
     # 22 kHz mono keeps each around 1-1.5 MB.

@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../game/logic/cosmos.dart';
 import '../progress/progress_cubit.dart';
 import '../run/run_cubit.dart';
+import 'defense_widgets.dart';
 import 'stardust_badge.dart';
 
 /// Score, combo, stardust and pause button drawn over the game.
@@ -82,8 +83,11 @@ class GameHud extends StatelessWidget {
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: BlocBuilder<RunCubit, RunState>(
-                  buildWhen: (a, b) => a.travelIndex != b.travelIndex,
-                  builder: (context, s) => _JourneyStrip(travelIndex: s.travelIndex),
+                  buildWhen: (a, b) => a.travelIndex != b.travelIndex || a.defense != b.defense,
+                  builder: (context, s) {
+                    final d = s.defense;
+                    return d != null ? DefenseStrip(defense: d) : _JourneyStrip(travelIndex: s.travelIndex);
+                  },
                 ),
               ),
             ),

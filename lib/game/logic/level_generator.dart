@@ -8,9 +8,13 @@ import 'cosmos.dart';
 /// Builds the endless chain of planets, one above the other.
 /// Every planet is placed so it never overlaps its neighbour and stays on screen.
 class LevelGenerator {
-  LevelGenerator({required this.width, int? seed}) : _rng = math.Random(seed);
+  LevelGenerator({required this.width, int? seed, this.asteroidsEverywhere = false})
+      : _rng = math.Random(seed);
 
   final double width;
+
+  /// "Save Earth" mode: debris drifts through every gap, not just the belts.
+  final bool asteroidsEverywhere;
   final math.Random _rng;
 
   double _range(double a, double b) => a + _rng.nextDouble() * (b - a);
@@ -105,7 +109,7 @@ class LevelGenerator {
   /// Rocks drifting across the gap, only in asteroid regions. Never on the
   /// approach to a real place, so discoveries stay calm.
   List<Asteroid> asteroidsBetween(Planet a, Planet b) {
-    if (b.landmark != null || a.landmark != null || !Cosmos.regionAt(b.index).asteroids) {
+    if (b.landmark != null || a.landmark != null || !(asteroidsEverywhere || Cosmos.regionAt(b.index).asteroids)) {
       return const <Asteroid>[];
     }
     final count = _rng.nextDouble() < 0.4 ? 2 : 1;

@@ -20,6 +20,8 @@ class SharedPrefsProgressRepository implements ProgressRepository {
   static const _kMissions = 'oh_missions';
   static const _kMissionSerial = 'oh_mission_serial';
   static const _kMissionsDone = 'oh_missions_done';
+  static const _kDefenseLevel = 'oh_defense_level';
+  static const _kEarthsSaved = 'oh_earths_saved';
 
   @override
   Future<PlayerProgress> load() async {
@@ -40,6 +42,8 @@ class SharedPrefsProgressRepository implements ProgressRepository {
           .toList(),
       missionSerial: _prefs.getInt(_kMissionSerial) ?? 0,
       missionsCompleted: _prefs.getInt(_kMissionsDone) ?? 0,
+      defenseLevel: _prefs.getInt(_kDefenseLevel) ?? 1,
+      earthsSaved: _prefs.getInt(_kEarthsSaved) ?? 0,
     );
   }
 
@@ -57,6 +61,8 @@ class SharedPrefsProgressRepository implements ProgressRepository {
       _prefs.setStringList(_kMissions, progress.missions.map((m) => m.encode()).toList()),
       _prefs.setInt(_kMissionSerial, progress.missionSerial),
       _prefs.setInt(_kMissionsDone, progress.missionsCompleted),
+      _prefs.setInt(_kDefenseLevel, progress.defenseLevel),
+      _prefs.setInt(_kEarthsSaved, progress.earthsSaved),
     ]);
   }
 }

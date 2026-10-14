@@ -15,11 +15,15 @@ import '../progress/progress_cubit.dart';
 import '../run/run_cubit.dart';
 import '../widgets/discovery_card.dart';
 import '../widgets/game_hud.dart';
+import '../widgets/defense_widgets.dart';
 import '../widgets/missions_view.dart';
 import '../widgets/run_panels.dart';
 
 class PlayPage extends StatefulWidget {
-  const PlayPage({super.key});
+  const PlayPage({super.key, this.defenseMode = false});
+
+  /// "Save Earth" mode instead of the open journey.
+  final bool defenseMode;
 
   @override
   State<PlayPage> createState() => _PlayPageState();
@@ -42,12 +46,33 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
 
   ProgressCubit get _progress => context.read<ProgressCubit>();
 
+  /// Earth's index in the journey: every "Save Earth" run launches from it.
+  static final int _earth = journey.indexWhere((l) => l.id == 'earth');
+
+  DefenseConfig? _defenseConfig() =>
+      widget.defenseMode ? DefenseConfig(level: _progress.state.defenseLevel) : null;
+
+  int _startIndex() => widget.defenseMode ? _earth : _progress.launchIndex;
+
+  DefenseSnapshot? _initialSnapshot(DefenseConfig? c) => c == null
+      ? null
+      : DefenseSnapshot(
+          level: c.level,
+          timeLeft: c.timeLimit,
+          charge: 0,
+          needed: c.chargeNeeded,
+          killerActive: false,
+          won: false,
+          started: false,
+        );
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    final start = _progress.launchIndex;
-    _run = RunCubit()..restart(startLandmark: start);
+    final start = _startIndex();
+    final defense = _defenseConfig();
+    _run = RunCubit()..restart(startLandmark: start, defense: _initialSnapshot(defense));
     _beginRunMissions();
     final skin = CometSkins.byId(_progress.state.selectedSkinId);
     _game = OrbitHopperGame(
@@ -62,7 +87,32 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
       onDepart: _handleDepart,
       onGameOver: _handleGameOver,
       onStats: _handleStats,
+      defense: defense,
+      onDefense: _handleDefense,
+      onDefenseWon: _handleDefenseWon,
     );
+  }
+
+  void _handleDefense(DefenseState d) {
+    if (_run.isClosed) return;
+    _run.defenseChanged(DefenseSnapshot(
+      level: d.config.level,
+      timeLeft: d.timeLeft,
+      charge: d.charge,
+      needed: d.config.chargeNeeded,
+      killerActive: d.killer != null,
+      won: d.won,
+      started: d.timeLeft < d.config.timeLimit,
+    ));
+  }
+
+  Future<void> _handleDefenseWon() async {
+    final level = _run.state.defense?.level ?? 1;
+    final reward = await _progress.defenseWon(level);
+    if (!mounted || _run.isClosed) return;
+    _game.pauseEngine();
+    GameAudio.instance.setDucked(true);
+    _run.won(reward: reward);
   }
 
   void _beginRunMissions() {
@@ -100,6 +150,10 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
 
   void _handleDepart(int landmarkIndex) {
     if (landmarkIndex == 0) _progress.discover(journey[0].id); // counts the Sun
+    if (widget.defenseMode) {
+      _progress.discover(journey[landmarkIndex].id); // Earth counts as found
+      return; // the briefing card replaces the departure card
+    }
     if (_lastDepartureShown == landmarkIndex || _run.isClosed) return;
     _lastDepartureShown = landmarkIndex;
     _run.departed(landmarkIndex);
@@ -137,6 +191,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
         DeathCause.collapse => 'Planet collapsed',
         DeathCause.lost => 'Lost in space',
         DeathCause.asteroid => 'Asteroid impact',
+        DeathCause.impact => 'Earth was hit',
       },
     );
   }
@@ -155,12 +210,14 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
   }
 
   void _retry() {
-    // Newly discovered places become the checkpoint automatically.
-    final start = _progress.launchIndex;
+    // Newly discovered places become the checkpoint automatically; in
+    // "Save Earth" a win has already raised the threat level.
+    final start = _startIndex();
+    final defense = _defenseConfig();
     GameAudio.instance.setDucked(false);
-    _run.restart(startLandmark: start);
+    _run.restart(startLandmark: start, defense: _initialSnapshot(defense));
     _beginRunMissions();
-    _game.restart(startLandmark: start);
+    _game.restart(startLandmark: start, defense: defense);
   }
 
   void _home() => context.pop();
@@ -181,6 +238,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
               ),
             ),
             Positioned.fill(child: RepaintBoundary(child: GameHud(onPause: _pause))),
+            if (widget.defenseMode) const Positioned.fill(child: DefenseBriefing()),
             const Positioned.fill(child: DiscoveryOverlay()),
             const Positioned.fill(child: MissionToast()),
             Positioned.fill(
@@ -189,7 +247,9 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
                 builder: (context, s) => switch (s.status) {
                   RunStatus.playing => const SizedBox.shrink(),
                   RunStatus.paused => PausePanel(onResume: _resume, onHome: _home),
-                  RunStatus.over => GameOverPanel(state: s, onRetry: _retry, onHome: _home),
+                  RunStatus.over => s.victory
+                      ? VictoryPanel(state: s, onNext: _retry, onHome: _home)
+                      : GameOverPanel(state: s, onRetry: _retry, onHome: _home),
                 },
               ),
             ),

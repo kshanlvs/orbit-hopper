@@ -24,6 +24,29 @@ class Discovery {
   final int id;
 }
 
+/// Immutable copy of the defense state for the UI.
+class DefenseSnapshot {
+  const DefenseSnapshot({
+    required this.level,
+    required this.timeLeft,
+    required this.charge,
+    required this.needed,
+    required this.killerActive,
+    required this.won,
+    required this.started,
+  });
+
+  final int level;
+  final double timeLeft;
+  final int charge;
+  final int needed;
+  final bool killerActive;
+  final bool won;
+  final bool started;
+
+  bool get charged => charge >= needed;
+}
+
 class RunState {
   const RunState({
     this.status = RunStatus.playing,
@@ -39,6 +62,9 @@ class RunState {
     this.bestScore = 0,
     this.deathReason = '',
     this.missionsDone = const <Mission>[],
+    this.defense,
+    this.victory = false,
+    this.victoryReward = 0,
   });
 
   final RunStatus status;
@@ -63,6 +89,11 @@ class RunState {
   /// Missions completed during this run (latest last; drives the toast).
   final List<Mission> missionsDone;
 
+  /// "Save Earth" status (null in journey mode).
+  final DefenseSnapshot? defense;
+  final bool victory;
+  final int victoryReward;
+
   RunState copyWith({
     RunStatus? status,
     int? score,
@@ -78,6 +109,9 @@ class RunState {
     int? bestScore,
     String? deathReason,
     List<Mission>? missionsDone,
+    DefenseSnapshot? defense,
+    bool? victory,
+    int? victoryReward,
   }) {
     return RunState(
       status: status ?? this.status,
@@ -93,6 +127,9 @@ class RunState {
       bestScore: bestScore ?? this.bestScore,
       deathReason: deathReason ?? this.deathReason,
       missionsDone: missionsDone ?? this.missionsDone,
+      defense: defense ?? this.defense,
+      victory: victory ?? this.victory,
+      victoryReward: victoryReward ?? this.victoryReward,
     );
   }
 }
@@ -150,13 +187,32 @@ class RunCubit extends Cubit<RunState> {
     if (state.status == RunStatus.paused) emit(state.copyWith(status: RunStatus.playing));
   }
 
-  void restart({required int startLandmark}) {
+  void restart({required int startLandmark, DefenseSnapshot? defense}) {
     final start = startLandmark * hopsPerLandmark;
     emit(RunState(
       startLandmark: startLandmark,
       bestIndex: start,
       travelIndex: start.toDouble(),
+      defense: defense,
     ));
+  }
+
+  void defenseChanged(DefenseSnapshot d) {
+    final old = state.defense;
+    // Only rebuild when something visible changed (timer shows whole seconds).
+    if (old != null &&
+        old.timeLeft.ceil() == d.timeLeft.ceil() &&
+        old.charge == d.charge &&
+        old.killerActive == d.killerActive &&
+        old.won == d.won &&
+        old.started == d.started) {
+      return;
+    }
+    emit(state.copyWith(defense: d));
+  }
+
+  void won({required int reward}) {
+    emit(state.copyWith(status: RunStatus.over, victory: true, victoryReward: reward, clearDiscovery: true));
   }
 
   void finish({

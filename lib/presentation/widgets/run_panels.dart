@@ -150,7 +150,7 @@ class GameOverPanel extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w700),
           ),
-          _SoClose(bestIndex: state.bestIndex),
+          if (state.defense == null) _SoClose(bestIndex: state.bestIndex) else _DefenseFail(state: state),
           const SizedBox(height: 14),
           if (state.missionsDone.isNotEmpty) ...[
             MissionsList(missions: state.missionsDone, done: state.missionsDone, title: 'MISSIONS COMPLETED'),
@@ -169,12 +169,77 @@ class GameOverPanel extends StatelessWidget {
           Builder(builder: (context) {
             final from = context.read<ProgressCubit>().launchIndex;
             return GlowButton(
-              label: from == 0 ? 'RETRY' : 'FROM ${journey[from].name.toUpperCase()}',
+              label: state.defense != null
+                  ? 'TRY AGAIN'
+                  : from == 0
+                      ? 'RETRY'
+                      : 'FROM ${journey[from].name.toUpperCase()}',
               icon: Icons.replay_rounded,
               width: 270,
               onPressed: onRetry,
             );
           }),
+          const SizedBox(height: 14),
+          GlowButton(label: 'HOME', filled: false, onPressed: onHome),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Save Earth" win screen.
+class VictoryPanel extends StatelessWidget {
+  const VictoryPanel({super.key, required this.state, required this.onNext, required this.onHome});
+
+  final RunState state;
+  final VoidCallback onNext;
+  final VoidCallback onHome;
+
+  @override
+  Widget build(BuildContext context) {
+    final saved = context.read<ProgressCubit>().state.earthsSaved;
+    final level = state.defense?.level ?? 1;
+    return _PanelShell(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.public_rounded, color: Color(0xFF2E7BFF), size: 54),
+          const SizedBox(height: 8),
+          const Text(
+            'EARTH SAVED!',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: 3, color: AppColors.gold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Threat level $level neutralised  ·  Earths saved: $saved',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 14),
+          StardustBadge(amount: state.victoryReward, prefix: '+'),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.accent.fade(0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.accent.fade(0.3)),
+            ),
+            child: const Text(
+              'Real fact: in 2022, NASA\'s DART spacecraft crashed into the asteroid Dimorphos on '
+              'purpose — and changed its orbit. Humanity\'s first planetary-defence test worked!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.4),
+            ),
+          ),
+          const SizedBox(height: 22),
+          GlowButton(
+            label: 'THREAT LEVEL ${level + 1}',
+            icon: Icons.warning_amber_rounded,
+            color: AppColors.danger,
+            width: 270,
+            onPressed: onNext,
+          ),
           const SizedBox(height: 14),
           GlowButton(label: 'HOME', filled: false, onPressed: onHome),
         ],
@@ -232,4 +297,32 @@ String _reachedLabel(int bestIndex) {
   if (bestIndex == 0) return 'STILL AT THE SUN';
   final last = journey[Cosmos.lastLandmarkBefore(bestIndex)].name.toUpperCase();
   return Cosmos.landmarkAt(bestIndex) != null ? 'REACHED $last' : 'BEYOND $last';
+}
+
+class _DefenseFail extends StatelessWidget {
+  const _DefenseFail({required this.state});
+
+  final RunState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = state.defense!;
+    final text = d.charged
+        ? 'You were fully charged — the asteroid was right there!'
+        : 'Charge reached ${d.charge}/${d.needed}. Hop faster and go for PERFECTs.';
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      decoration: BoxDecoration(
+        color: AppColors.danger.fade(0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.danger.fade(0.35)),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 13),
+      ),
+    );
+  }
 }

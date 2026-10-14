@@ -19,6 +19,8 @@ enum WorldEventType {
   wormhole,
   shieldGet,
   shieldBreak,
+  killerSpawn,
+  deflect,
 }
 
 class WorldEvent {
@@ -36,11 +38,20 @@ class WorldEvent {
 /// fully unit-testable. World coordinates: x right, y down; the camera
 /// scrolls upward (cameraY becomes more negative).
 class GameWorld {
-  GameWorld({required this.width, required this.height, int? seed, int startLandmark = 0})
-      : startLandmark = startLandmark.clamp(0, journey.length - 1).toInt(),
-        _generator = LevelGenerator(width: width, seed: seed) {
+  GameWorld({
+    required this.width,
+    required this.height,
+    int? seed,
+    int startLandmark = 0,
+    DefenseConfig? defense,
+  })  : startLandmark = startLandmark.clamp(0, journey.length - 1).toInt(),
+        defense = defense == null ? null : DefenseState(defense),
+        _generator = LevelGenerator(width: width, seed: seed, asteroidsEverywhere: defense != null) {
     _reset();
   }
+
+  /// Non-null in "Save Earth" mode.
+  final DefenseState? defense;
 
   /// Checkpoint the run starts from (index into [journey]).
   final int startLandmark;
@@ -162,6 +173,7 @@ class GameWorld {
       a.angle += a.spin * dt;
     }
     if (invulnerable > 0) invulnerable = math.max(0.0, invulnerable - dt);
+    _updateDefense(dt);
 
     if (comet.mode == CometMode.orbiting) {
       _updateOrbit(dt);
@@ -226,6 +238,16 @@ class GameWorld {
       if ((a.position - comet.position).distance < cometRadius + a.radius) {
         if (_hit(DeathCause.asteroid, a.position)) return;
       }
+    }
+
+    final def = defense;
+    final killer = def?.killer;
+    if (def != null && killer != null &&
+        (killer.position - comet.position).distance < cometRadius + KillerAsteroid.radius) {
+      def.killer = null;
+      def.won = true;
+      invulnerable = double.infinity; // nothing can hurt you after saving Earth
+      events.add(WorldEvent(WorldEventType.deflect, killer.position));
     }
 
     for (final s in shields) {
@@ -307,6 +329,11 @@ class GameWorld {
     score += points;
     stats.hops = hopsThisRun;
     if (perfect) stats.perfects++;
+    final def = defense;
+    if (def != null && def.active && !def.charged) {
+      def.charge = math.min(def.config.chargeNeeded, def.charge + skipped + (perfect ? 1 : 0));
+      if (def.charged) _spawnKiller();
+    }
     stats.maxCombo = math.max(stats.maxCombo, combo);
 
     events.add(WorldEvent(WorldEventType.capture, comet.position, value: points, argb: p.look.primary));
@@ -356,8 +383,76 @@ class GameWorld {
     return true;
   }
 
+  void _updateDefense(double dt) {
+    final d = defense;
+    if (d == null || !d.active) return;
+    if (started && comet.mode != CometMode.dead) {
+      d.timeLeft = math.max(0.0, d.timeLeft - dt);
+      if (d.timeLeft <= 0) {
+        d.failed = true;
+        _die(DeathCause.impact);
+        return;
+      }
+    }
+    final k = d.killer;
+    if (k == null) return;
+    // Sways side to side as it hurtles toward Earth.
+    final x = (k.base.dx + math.sin(d.timeLeft * 0.9 + k.phase) * k.sway)
+        .clamp(KillerAsteroid.radius + 8, width - KillerAsteroid.radius - 8)
+        .toDouble();
+    k.position = Offset(x, k.base.dy);
+    k.angle += dt * 0.8;
+    // Fell behind the camera? It slips ahead again — keep chasing.
+    if (k.position.dy > cameraY + height + 60) _spawnKiller();
+  }
+
+  /// Places the killer asteroid in the first gap ahead (after the next
+  /// planet) that has clear space, away from every planet's pull.
+  void _spawnKiller() {
+    final d = defense;
+    if (d == null) return;
+    _fillAhead();
+    const margin = KillerAsteroid.radius + 12;
+    Offset? spot;
+    var spotSlack = double.negativeInfinity;
+    for (var gap = 1; gap <= 3; gap++) {
+      Planet? a;
+      Planet? b;
+      for (final p in planets) {
+        if (p.index == bestIndex + gap) a = p;
+        if (p.index == bestIndex + gap + 1) b = p;
+      }
+      if (a == null || b == null) break;
+      final midY = (a.baseCenter.dy + b.baseCenter.dy) / 2;
+      double clearance(Planet p, double x) {
+        final pull = math.max(p.outerRadius, p.orbitRadius + captureBand) + p.driftAmplitude;
+        return (Offset(x, midY) - p.baseCenter).distance - pull - KillerAsteroid.radius - 16;
+      }
+
+      for (var i = 0; i <= 12; i++) {
+        final x = margin + (width - 2 * margin) * i / 12;
+        final slack = math.min(clearance(a, x), clearance(b, x));
+        if (slack > spotSlack) {
+          spotSlack = slack;
+          spot = Offset(x, midY);
+        }
+      }
+      if (spotSlack >= 0) break; // good enough — nearest clear gap wins
+    }
+    if (spot == null) return;
+    d.killer = KillerAsteroid(spot, _rngPhase(), sway: spotSlack.clamp(0.0, 45.0).toDouble());
+    // Clear debris near it so the intercept is fair.
+    final y = spot.dy;
+    asteroids.removeWhere((r) => (r.position.dy - y).abs() < 80);
+    events.add(WorldEvent(WorldEventType.killerSpawn, spot));
+  }
+
+  double _phaseSeed = 0;
+  double _rngPhase() => _phaseSeed += 1.7;
+
   void _die(DeathCause cause) {
     if (isDead) return;
+    if (defense?.won ?? false) return; // the victory lap can't fail
     deathCause = cause;
     comet.mode = CometMode.dead;
     events.add(WorldEvent(

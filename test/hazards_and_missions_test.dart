@@ -119,6 +119,67 @@ void main() {
     });
   });
 
+  group('Save Earth', () {
+    const config = DefenseConfig(level: 1);
+
+    test('the countdown only starts after the first launch', () {
+      final world = GameWorld(width: 390, height: 844, seed: 8, startLandmark: 3, defense: config);
+      for (var i = 0; i < 120; i++) {
+        world.update(_dt);
+      }
+      expect(world.defense!.timeLeft, config.timeLimit);
+    });
+
+    test('running out of time means impact', () {
+      final world = GameWorld(width: 390, height: 844, seed: 8, startLandmark: 3, defense: config);
+      world.launch();
+      world.defense!.timeLeft = 0.01;
+      world.update(_dt);
+      expect(world.isDead, isTrue);
+      expect(world.deathCause, DeathCause.impact);
+      expect(world.defense!.failed, isTrue);
+    });
+
+    test('full charge spawns the killer asteroid; ramming it saves Earth', () {
+      final world = GameWorld(width: 390, height: 844, seed: 8, startLandmark: 3, defense: config);
+      world.defense!.charge = config.chargeNeeded - 1;
+      // Land on the next planet via a wormhole placed right in front.
+      world.launch();
+      world.update(_dt * 0.01);
+      world.wormholes.add(Wormhole(world.comet.position + world.comet.velocity * 0.03, world.bestIndex + 1, 0));
+      for (var i = 0; i < 4 && world.defense!.killer == null; i++) {
+        world.update(_dt);
+      }
+      final killer = world.defense!.killer;
+      expect(killer, isNotNull);
+      expect(world.defense!.charged, isTrue);
+
+      // Fly straight into it.
+      world.launch();
+      world.comet.position = killer!.position + const Offset(0, 25);
+      world.comet.velocity = const Offset(0, -600);
+      for (var i = 0; i < 10 && !world.defense!.won; i++) {
+        world.update(_dt);
+      }
+      expect(world.defense!.won, isTrue);
+      expect(world.defense!.killer, isNull);
+      // Nothing can end the run after the save.
+      world.defense!.timeLeft = 0;
+      for (var i = 0; i < 300; i++) {
+        world.update(_dt);
+      }
+      expect(world.isDead, isFalse);
+    });
+
+    test('threat levels get harder', () {
+      const l1 = DefenseConfig(level: 1);
+      const l4 = DefenseConfig(level: 4);
+      expect(l4.chargeNeeded, greaterThan(l1.chargeNeeded));
+      expect(l4.timeLimit, lessThan(l1.timeLimit));
+      expect(l4.reward, greaterThan(l1.reward));
+    });
+  });
+
   test('ranks rise along the journey', () {
     expect(Cosmos.rankFor(0), 'Solar Cadet');
     expect(Cosmos.rankFor(journey.length - 1), 'Master of the Universe');

@@ -183,25 +183,35 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           GlowButton(
             label: launch == 0 ? 'PLAY' : 'CONTINUE',
             icon: Icons.play_arrow_rounded,
+            width: 290,
             onPressed: () => context.push(AppRoutes.play),
           ),
-          const SizedBox(height: 16),
-          GlowButton(
-            label: 'STAR MAP',
-            icon: Icons.public_rounded,
-            filled: false,
-            onPressed: () => context.push(AppRoutes.journey),
+          const SizedBox(height: 14),
+          _SaveEarthButton(level: progress.defenseLevel),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: 290,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GlowButton(
+                  label: 'STAR MAP',
+                  filled: false,
+                  width: 140,
+                  onPressed: () => context.push(AppRoutes.journey),
+                ),
+                GlowButton(
+                  label: 'COMETS',
+                  filled: false,
+                  color: AppColors.gold,
+                  width: 140,
+                  onPressed: () => context.push(AppRoutes.skins),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
           _MissionsChip(progress: progress),
-          const SizedBox(height: 14),
-          GlowButton(
-            label: 'COMETS',
-            icon: Icons.auto_awesome,
-            filled: false,
-            color: AppColors.gold,
-            onPressed: () => context.push(AppRoutes.skins),
-          ),
           const Spacer(),
         ],
       ),
@@ -329,7 +339,7 @@ class _MissionsChip extends StatelessWidget {
     return GestureDetector(
       onTap: () => showMissionsSheet(context),
       child: Container(
-        width: 240,
+        width: 290,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
@@ -359,6 +369,67 @@ class _MissionsChip extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Urgent red "SAVE EARTH" entry with a pulsing threat badge.
+class _SaveEarthButton extends StatefulWidget {
+  const _SaveEarthButton({required this.level});
+
+  final int level;
+
+  @override
+  State<_SaveEarthButton> createState() => _SaveEarthButtonState();
+}
+
+class _SaveEarthButtonState extends State<_SaveEarthButton> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GlowButton(
+          label: 'SAVE EARTH',
+          icon: Icons.public_rounded,
+          color: AppColors.danger,
+          width: 290,
+          onPressed: () => context.push(AppRoutes.defense),
+        ),
+        Positioned(
+          right: -4,
+          top: -10,
+          child: FadeTransition(
+            opacity: Tween(begin: 0.55, end: 1.0).animate(_pulse),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.gold,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [BoxShadow(color: AppColors.gold.fade(0.6), blurRadius: 10)],
+              ),
+              child: Text(
+                'THREAT LV ${widget.level}',
+                style: const TextStyle(
+                  color: AppColors.background,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -24,6 +24,7 @@ typedef TravelCallback = void Function(double travelIndex);
 typedef LandmarkCallback = void Function(int landmarkIndex);
 typedef GameOverCallback = void Function(int score, int stardust, int bestIndex, DeathCause cause);
 typedef StatsCallback = void Function(RunStats stats);
+typedef DefenseCallback = void Function(DefenseState state);
 
 /// Flame shell around [GameWorld]: drives the loop, draws the cosmos,
 /// adds juice (particles, slow motion, warp streaks, sound) and reports to the UI.
@@ -40,6 +41,9 @@ class OrbitHopperGame extends FlameGame {
     required this.onDepart,
     required this.onGameOver,
     required this.onStats,
+    this.defense,
+    this.onDefense,
+    this.onDefenseWon,
     GameAudio? audio,
   }) : audio = audio ?? GameAudio.instance;
 
@@ -59,6 +63,14 @@ class OrbitHopperGame extends FlameGame {
 
   /// Fired whenever run stats change (for missions).
   final StatsCallback onStats;
+
+  /// "Save Earth" mode (null = normal journey).
+  DefenseConfig? defense;
+  final DefenseCallback? onDefense;
+  final VoidCallback? onDefenseWon;
+  double _wonTimer = -1;
+  double _alarmTimer = 0;
+  static const _killerLook = BodyLook(BodyStyle.cratered, 0xFF8C4A36, 0xFF3A1A12);
 
   static const _goldColor = AppColors.gold;
   static const _dangerColor = AppColors.danger;
@@ -127,11 +139,13 @@ class OrbitHopperGame extends FlameGame {
     sim.launch();
   }
 
-  void restart({required int startLandmark}) {
+  void restart({required int startLandmark, DefenseConfig? defense}) {
     this.startLandmark = startLandmark;
+    this.defense = defense;
+    _wonTimer = -1;
     final sim = _sim;
     if (sim == null) return;
-    _sim = GameWorld(width: sim.width, height: sim.height, startLandmark: startLandmark);
+    _sim = GameWorld(width: sim.width, height: sim.height, startLandmark: startLandmark, defense: defense);
     _backdrop?.snapTo(_sim!.region);
     _effects.clear();
     _trail.clear();
@@ -149,7 +163,7 @@ class OrbitHopperGame extends FlameGame {
     onStardustChanged(0);
     onJourney(_sim!.bestIndex);
     onTravel(_sim!.bestIndex.toDouble());
-    audio.setMood(_sim!.region.mood);
+    audio.setMood(defense != null ? Mood.deep : _sim!.region.mood);
     resumeEngine();
   }
 
@@ -164,14 +178,14 @@ class OrbitHopperGame extends FlameGame {
 
     var sim = _sim;
     if (sim == null || (!sim.started && (sim.width != w || sim.height != h))) {
-      sim = GameWorld(width: w, height: h, startLandmark: startLandmark);
+      sim = GameWorld(width: w, height: h, startLandmark: startLandmark, defense: defense);
       _sim = sim;
       _stars = Starfield(width: w, height: h);
       _backdrop?.dispose();
       _backdrop = SpaceBackdrop(width: w, height: h)..snapTo(sim.region);
       _trail.clear();
       _prevCamera = sim.cameraY;
-      audio.setMood(sim.region.mood);
+      audio.setMood(defense != null ? Mood.deep : sim.region.mood);
     }
 
     // Slow motion for dramatic moments, easing back to normal speed.
@@ -225,6 +239,30 @@ class OrbitHopperGame extends FlameGame {
     if (_travelTimer <= 0) {
       _travelTimer = 0.1;
       onTravel(sim.travelIndex);
+      final ds = sim.defense;
+      if (ds != null) onDefense?.call(ds);
+    }
+
+    // Save Earth: alarms in the last seconds, victory hand-off.
+    final d = sim.defense;
+    if (d != null) {
+      if (d.active && sim.started && d.timeLeft < 10) {
+        _alarmTimer -= dt;
+        if (_alarmTimer <= 0) {
+          _alarmTimer = 1.0;
+          audio.play(Sfx.alarm);
+          _flash = math.max(_flash, 0.25);
+          _flashColor = _dangerColor;
+        }
+      }
+      if (_wonTimer >= 0) {
+        _wonTimer += dt;
+        if (_wonTimer > 2.6) {
+          _wonTimer = -1;
+          onDefense?.call(d);
+          onDefenseWon?.call();
+        }
+      }
     }
   }
 
@@ -368,6 +406,30 @@ class OrbitHopperGame extends FlameGame {
           audio.play(Sfx.shield);
           _effects.ring(e.position, _shieldColor, maxRadius: 60, life: 0.5, width: 3);
           _effects.text('SHIELD', e.position + const Offset(0, -30), _shieldColor, size: 18);
+        case WorldEventType.killerSpawn:
+          HapticFeedback.heavyImpact();
+          audio.play(Sfx.alarm);
+          _bannerTitle = 'FULLY CHARGED';
+          _bannerName = 'INTERCEPT THE ASTEROID!';
+          _bannerTime = 3.0;
+          _flash = 0.4;
+          _flashColor = _dangerColor;
+        case WorldEventType.deflect:
+          HapticFeedback.heavyImpact();
+          audio.play(Sfx.victory);
+          _slowMo(0.2, 1.4);
+          _shake = 22;
+          _flash = 1.0;
+          _flashColor = Colors.white;
+          _wonTimer = 0;
+          _effects.burst(e.position, const Color(0xFFFF8A3D), count: 90, speed: 420, life: 1.6, size: 4);
+          _effects.burst(e.position, Colors.white, count: 40, speed: 300, life: 1.0, size: 2.5);
+          _effects.ring(e.position, Colors.white, maxRadius: 260, life: 1.4, width: 7);
+          _effects.ring(e.position, const Color(0xFFFF8A3D), maxRadius: 180, life: 1.1, width: 5);
+          _effects.text('DEFLECTED!', e.position + const Offset(0, -60), AppColors.gold, size: 30, life: 2.0);
+          _bannerTitle = 'MISSION SUCCESS';
+          _bannerName = 'EARTH IS SAFE';
+          _bannerTime = 3.2;
         case WorldEventType.shieldBreak:
           HapticFeedback.heavyImpact();
           audio.play(Sfx.shieldBreak);
@@ -385,6 +447,14 @@ class OrbitHopperGame extends FlameGame {
           _effects.burst(e.position, deathColor, count: 50, speed: 340, life: 1.1, size: 3.2);
           _effects.burst(e.position, Colors.white, count: 14, speed: 200, life: 0.6, size: 2);
           _effects.ring(e.position, deathColor, maxRadius: 140, life: 0.8, width: 5);
+          if (e.value == DeathCause.impact.index) {
+            _flash = 1.0;
+            _flashColor = _dangerColor;
+            _shake = 26;
+            _bannerTitle = 'IMPACT';
+            _bannerName = 'EARTH WAS HIT';
+            _bannerTime = 3.2;
+          }
           if (e.value == DeathCause.collapse.index) {
             final planet = sim.comet.planet;
             if (planet != null) {
@@ -439,6 +509,8 @@ class OrbitHopperGame extends FlameGame {
       if (s.collected || s.position.dy < top || s.position.dy > bottom) continue;
       _drawShieldPickup(canvas, s);
     }
+    final killer = sim.defense?.killer;
+    if (killer != null) _drawKiller(canvas, killer);
     for (final a in sim.asteroids) {
       if (a.position.dy < top || a.position.dy > bottom) continue;
       GlowSprites.draw(canvas, a.position, a.radius * 2.4, _dangerColor, opacity: 0.35);
@@ -451,6 +523,7 @@ class OrbitHopperGame extends FlameGame {
     canvas.restore();
 
     _drawSignalHud(canvas, sim, w, h);
+    _drawKillerMarker(canvas, sim, w, h);
     _drawDangerVignette(canvas, sim, w, h);
     if (_flash > 0) {
       _fill.color = _flashColor.fade(math.min(1.0, _flash) * 0.35);
@@ -631,6 +704,42 @@ class OrbitHopperGame extends FlameGame {
         ..strokeWidth = 2;
       canvas.drawCircle(pos, 14 + pulse, _stroke);
     }
+  }
+
+  /// The giant asteroid: fiery trail pointing back toward Earth.
+  void _drawKiller(Canvas canvas, KillerAsteroid k) {
+    const r = KillerAsteroid.radius;
+    final c = k.position;
+    for (var i = 5; i >= 1; i--) {
+      final t = i / 5;
+      GlowSprites.draw(canvas, c + Offset(0, r * 1.4 * t), r * (1.4 - 0.12 * i),
+          Color.lerp(const Color(0xFFFFD166), _dangerColor, t)!, opacity: 0.55 - 0.08 * i);
+    }
+    final pulse = 0.5 + 0.5 * math.sin(_time * 6);
+    GlowSprites.draw(canvas, c, r * 2.2, _dangerColor, opacity: 0.45 + 0.25 * pulse);
+    BodySprites.draw(canvas, c, r, _killerLook, _time, seed: 7);
+    _stroke
+      ..color = AppColors.gold.fade(0.5 + 0.4 * pulse)
+      ..strokeWidth = 2;
+    canvas.drawCircle(c, r + 8 + 3 * pulse, _stroke);
+    TextSprites.draw(canvas, 'RAM IT!', c + const Offset(0, -r - 20),
+        fontSize: 13, color: AppColors.gold, letterSpacing: 3, opacity: 0.6 + 0.4 * pulse, glow: true);
+  }
+
+  void _drawKillerMarker(Canvas canvas, GameWorld sim, double w, double h) {
+    final k = sim.defense?.killer;
+    if (k == null) return;
+    final screenY = k.position.dy - sim.cameraY;
+    if (screenY > 0) return;
+    final pulse = 0.5 + 0.5 * math.sin(_time * 6);
+    final x = k.position.dx.clamp(30.0, w - 30.0).toDouble();
+    canvas.save();
+    canvas.translate(x, 112);
+    _fill.color = _dangerColor.fade(0.6 + 0.4 * pulse);
+    canvas.drawPath(_arrowPath, _fill);
+    canvas.restore();
+    TextSprites.draw(canvas, 'TARGET AHEAD', Offset(x.clamp(80.0, w - 80.0).toDouble(), 132),
+        fontSize: 10, color: _dangerColor, letterSpacing: 2.5, opacity: 0.7 + 0.3 * pulse);
   }
 
   /// Swirling portal: spinning arcs around a dark core.
