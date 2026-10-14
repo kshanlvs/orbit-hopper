@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/mission.dart';
 import '../../game/logic/cosmos.dart';
 
 enum RunStatus { playing, paused, over }
@@ -37,6 +38,7 @@ class RunState {
     this.earnedStardust = 0,
     this.bestScore = 0,
     this.deathReason = '',
+    this.missionsDone = const <Mission>[],
   });
 
   final RunStatus status;
@@ -58,6 +60,9 @@ class RunState {
   final int bestScore;
   final String deathReason;
 
+  /// Missions completed during this run (latest last; drives the toast).
+  final List<Mission> missionsDone;
+
   RunState copyWith({
     RunStatus? status,
     int? score,
@@ -72,6 +77,7 @@ class RunState {
     int? earnedStardust,
     int? bestScore,
     String? deathReason,
+    List<Mission>? missionsDone,
   }) {
     return RunState(
       status: status ?? this.status,
@@ -86,6 +92,7 @@ class RunState {
       earnedStardust: earnedStardust ?? this.earnedStardust,
       bestScore: bestScore ?? this.bestScore,
       deathReason: deathReason ?? this.deathReason,
+      missionsDone: missionsDone ?? this.missionsDone,
     );
   }
 }
@@ -132,6 +139,8 @@ class RunCubit extends Cubit<RunState> {
   void dismissDiscovery(int id) {
     if (state.discovery?.id == id) emit(state.copyWith(clearDiscovery: true));
   }
+
+  void missionCompleted(Mission m) => emit(state.copyWith(missionsDone: [...state.missionsDone, m]));
 
   void pause() {
     if (state.status == RunStatus.playing) emit(state.copyWith(status: RunStatus.paused));

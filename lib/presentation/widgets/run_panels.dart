@@ -6,6 +6,7 @@ import '../../game/logic/cosmos.dart';
 import '../progress/progress_cubit.dart';
 import '../run/run_cubit.dart';
 import 'glow_button.dart';
+import 'missions_view.dart';
 import 'stardust_badge.dart';
 
 class _PanelShell extends StatelessWidget {
@@ -62,7 +63,11 @@ class PausePanel extends StatelessWidget {
             'PAUSED',
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: 6),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
+          Builder(
+            builder: (context) => MissionsList(missions: context.read<ProgressCubit>().state.missions),
+          ),
+          const SizedBox(height: 16),
           GlowButton(label: 'RESUME', icon: Icons.play_arrow_rounded, onPressed: onResume),
           const SizedBox(height: 14),
           GlowButton(label: 'HOME', filled: false, onPressed: onHome),
@@ -147,6 +152,18 @@ class GameOverPanel extends StatelessWidget {
           ),
           _SoClose(bestIndex: state.bestIndex),
           const SizedBox(height: 14),
+          if (state.missionsDone.isNotEmpty) ...[
+            MissionsList(missions: state.missionsDone, done: state.missionsDone, title: 'MISSIONS COMPLETED'),
+            const SizedBox(height: 6),
+          ] else ...[
+            Builder(
+              builder: (context) => MissionsList(
+                missions: context.read<ProgressCubit>().state.missions,
+                title: 'YOUR MISSIONS',
+              ),
+            ),
+            const SizedBox(height: 6),
+          ],
           StardustBadge(amount: state.earnedStardust, prefix: '+'),
           const SizedBox(height: 24),
           Builder(builder: (context) {

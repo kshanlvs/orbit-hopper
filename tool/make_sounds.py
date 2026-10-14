@@ -331,6 +331,50 @@ def warp():
     return mix + swell
 
 
+def wormhole():
+    """Hyperspace jump: a swirling pitch dive then a bright rush upward."""
+    dur = 1.6
+    n = int(SR * dur)
+    t = t_axis(dur)
+    wobble = np.sin(2 * np.pi * (6 + 10 * t / dur) * t)
+    f = 220 * (1 + 0.15 * wobble) * np.exp(-t * 1.2) + 80
+    swirl = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * t / dur) * 0.5
+    rush = highpass(rng.standard_normal(n), 1800) * (t / dur) ** 2 * np.exp(-np.maximum(0, t - 1.2) * 8) * 0.35
+    buf = swirl + rush
+    place(buf, sweep(400, 2400, 0.5) * env(int(SR * 0.5), 0.01, 0.2) * 0.3, 1.0)
+    return buf
+
+
+def shield():
+    """Shield pickup: a warm rising two-note shimmer."""
+    buf = np.zeros(int(SR * 0.7))
+    place(buf, tone(note(79), 0.6, 0.2, (1, 0.3, 0.1)), 0)
+    place(buf, tone(note(86), 0.6, 0.25, (1, 0.3, 0.1)), 0.07)
+    t = t_axis(0.7)
+    buf += np.sin(2 * np.pi * note(98) * t) * env(len(t), 0.05, 0.15) * 0.15
+    return buf
+
+
+def shield_break():
+    """Shield shattering: glassy crack and falling sparkles."""
+    dur = 0.9
+    n = int(SR * dur)
+    buf = highpass(rng.standard_normal(n), 3500) * env(n, 0.001, 0.06) * 0.8
+    for k, m in enumerate([96, 91, 88, 84, 79]):
+        place(buf, tone(note(m), 0.4, 0.08, (1, 0.2)) * 0.4, 0.03 + k * 0.05)
+    place(buf, sweep(160, 60, 0.4) * env(int(SR * 0.4), 0.002, 0.1) * 0.6, 0)
+    return buf
+
+
+def mission():
+    """Mission complete: a short triumphant arpeggio."""
+    buf = np.zeros(int(SR * 1.2))
+    for k, m in enumerate([72, 76, 79, 84]):
+        place(buf, tone(note(m), 0.9, 0.3, (1, 0.35, 0.12)) * 0.6, k * 0.08)
+    place(buf, tone(note(88), 0.9, 0.4, (1, 0.3)) * 0.4, 0.34)
+    return buf
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     save('launch.wav', launch(), 0.6)
@@ -346,6 +390,10 @@ def main():
     save('reveal.wav', reveal(), 0.9)
     save('ping.wav', ping(), 0.55)
     save('warp.wav', warp(), 0.7)
+    save('wormhole.wav', wormhole(), 0.8)
+    save('shield.wav', shield(), 0.6)
+    save('shield_break.wav', shield_break(), 0.75)
+    save('mission.wav', mission(), 0.65)
 
     # One looping track per mood. WAV (not mp3) so loops are gapless;
     # 22 kHz mono keeps each around 1-1.5 MB.

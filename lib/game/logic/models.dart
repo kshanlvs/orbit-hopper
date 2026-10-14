@@ -86,9 +86,54 @@ class Stardust {
   bool collected = false;
 }
 
+/// A rock drifting sideways across a gap (Asteroid Belt, Kuiper Belt).
+class Asteroid {
+  Asteroid({required this.position, required this.speed, required this.radius, required this.spin, required this.seed});
+
+  Offset position;
+
+  /// Horizontal speed in px/s (negative = moving left). Wraps around the screen.
+  final double speed;
+  final double radius;
+  final double spin;
+  final int seed;
+  double angle = 0;
+}
+
+/// A rare portal: fly through it to warp straight to planet [targetIndex].
+class Wormhole {
+  Wormhole(this.position, this.targetIndex, this.phase);
+
+  static const double radius = 24;
+
+  final Offset position;
+  final int targetIndex;
+  final double phase;
+  bool used = false;
+}
+
+/// A bubble that absorbs one moon or asteroid hit.
+class ShieldPickup {
+  ShieldPickup(this.position);
+
+  final Offset position;
+  bool collected = false;
+}
+
+/// What happened in a run — feeds missions and the game-over screen.
+class RunStats {
+  int hops = 0;
+  int perfects = 0;
+  int maxCombo = 0;
+  int stardust = 0;
+  int wormholes = 0;
+  int shieldSaves = 0;
+  int newDiscoveries = 0;
+}
+
 enum CometMode { orbiting, flying, dead }
 
-enum DeathCause { moon, collapse, lost }
+enum DeathCause { moon, collapse, lost, asteroid }
 
 class Comet {
   CometMode mode = CometMode.orbiting;

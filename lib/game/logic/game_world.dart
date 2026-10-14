@@ -6,7 +6,20 @@ import 'difficulty.dart';
 import 'level_generator.dart';
 import 'models.dart';
 
-enum WorldEventType { launch, capture, perfect, stardust, death, warning, region, discovery, depart }
+enum WorldEventType {
+  launch,
+  capture,
+  perfect,
+  stardust,
+  death,
+  warning,
+  region,
+  discovery,
+  depart,
+  wormhole,
+  shieldGet,
+  shieldBreak,
+}
 
 class WorldEvent {
   const WorldEvent(this.type, this.position, {this.value = 0, this.argb = 0xFFFFFFFF});
@@ -36,6 +49,7 @@ class GameWorld {
   static const double cometRadius = 7;
   static const double captureBand = 26;
   static const double stardustPickupRadius = 20;
+  static const double shieldPickupRadius = 24;
   static const double maxFlightTime = 2.4;
 
   /// Entry with a radial share below this counts as a "perfect" skim.
@@ -47,6 +61,16 @@ class GameWorld {
 
   final List<Planet> planets = [];
   final List<Stardust> stardust = [];
+  final List<Asteroid> asteroids = [];
+  final List<Wormhole> wormholes = [];
+  final List<ShieldPickup> shields = [];
+  final RunStats stats = RunStats();
+
+  /// True while the comet carries a shield bubble.
+  bool shield = false;
+
+  /// Seconds of invulnerability left after a shield breaks.
+  double invulnerable = 0;
 
   /// Events since the last time the consumer cleared this list.
   final List<WorldEvent> events = [];
@@ -130,6 +154,14 @@ class GameWorld {
     for (final p in planets) {
       p.update(dt);
     }
+    for (final a in asteroids) {
+      final x = a.position.dx + a.speed * dt;
+      // Wrap around the screen edges.
+      final wrapped = x < -24 ? x + width + 48 : (x > width + 24 ? x - width - 48 : x);
+      a.position = Offset(wrapped, a.position.dy);
+      a.angle += a.spin * dt;
+    }
+    if (invulnerable > 0) invulnerable = math.max(0.0, invulnerable - dt);
 
     if (comet.mode == CometMode.orbiting) {
       _updateOrbit(dt);
@@ -182,20 +214,47 @@ class GameWorld {
     comet.velocity = len == 0 ? v : v / len * comet.speed;
     comet.position += comet.velocity * dt;
 
-    // Moons are deadly.
+    // Moons and asteroids are deadly (unless shielded).
     for (final p in planets) {
       for (final m in p.moons) {
         if ((p.moonPosition(m) - comet.position).distance < cometRadius + m.radius) {
-          _die(DeathCause.moon);
-          return;
+          if (_hit(DeathCause.moon, p.moonPosition(m))) return;
         }
       }
+    }
+    for (final a in asteroids) {
+      if ((a.position - comet.position).distance < cometRadius + a.radius) {
+        if (_hit(DeathCause.asteroid, a.position)) return;
+      }
+    }
+
+    for (final s in shields) {
+      if (!s.collected && (s.position - comet.position).distance < shieldPickupRadius) {
+        s.collected = true;
+        shield = true;
+        events.add(WorldEvent(WorldEventType.shieldGet, s.position));
+      }
+    }
+
+    // Find first, warp after: warping generates planets (and wormholes),
+    // which must not happen while iterating the list.
+    Wormhole? entered;
+    for (final w in wormholes) {
+      if (!w.used && (w.position - comet.position).distance < Wormhole.radius) {
+        entered = w;
+        break;
+      }
+    }
+    if (entered != null) {
+      entered.used = true;
+      if (_warp(entered)) return;
     }
 
     for (final s in stardust) {
       if (!s.collected && (s.position - comet.position).distance < stardustPickupRadius) {
         s.collected = true;
         stardustCollected++;
+        stats.stardust = stardustCollected;
         events.add(WorldEvent(WorldEventType.stardust, s.position));
       }
     }
@@ -246,6 +305,9 @@ class GameWorld {
     final oldRegion = region;
     bestIndex = p.index;
     score += points;
+    stats.hops = hopsThisRun;
+    if (perfect) stats.perfects++;
+    stats.maxCombo = math.max(stats.maxCombo, combo);
 
     events.add(WorldEvent(WorldEventType.capture, comet.position, value: points, argb: p.look.primary));
     if (perfect) {
@@ -258,6 +320,40 @@ class GameWorld {
     if (landmark != null) {
       events.add(WorldEvent(WorldEventType.discovery, p.center, value: landmark, argb: p.look.primary));
     }
+  }
+
+  /// A collision. Returns true if it ended the run.
+  bool _hit(DeathCause cause, Offset at) {
+    if (invulnerable > 0) return false;
+    if (shield) {
+      shield = false;
+      invulnerable = 1.2;
+      stats.shieldSaves++;
+      events.add(WorldEvent(WorldEventType.shieldBreak, at));
+      return false;
+    }
+    _die(cause);
+    return true;
+  }
+
+  /// Teleports the comet into orbit around the wormhole's target planet.
+  bool _warp(Wormhole w) {
+    _fillAhead();
+    Planet? target;
+    for (final p in planets) {
+      if (p.index == w.targetIndex) target = p;
+    }
+    if (target == null || target.collapsed) return false;
+    final from = comet.position;
+    // Arrive on the near side of the orbit, moving tangentially: a clean,
+    // perfect entry.
+    final angle = math.pi / 2 + (from.dx < target.center.dx ? 0.35 : -0.35);
+    comet.position = target.center + _unit(angle) * target.orbitRadius;
+    comet.velocity = Offset(-math.sin(angle), math.cos(angle)) * comet.speed;
+    stats.wormholes++;
+    events.add(WorldEvent(WorldEventType.wormhole, from, value: target.index - bestIndex));
+    _capture(target, target.orbitRadius);
+    return true;
   }
 
   void _die(DeathCause cause) {
@@ -288,7 +384,15 @@ class GameWorld {
       final prev = planets.last;
       final next = _generator.next(prev);
       planets.add(next);
-      stardust.addAll(_generator.stardustBetween(prev, next));
+      final hole = _generator.wormholeBetween(prev, next);
+      if (hole != null) {
+        wormholes.add(hole);
+      } else {
+        stardust.addAll(_generator.stardustBetween(prev, next));
+        final s = _generator.shieldBetween(prev, next);
+        if (s != null) shields.add(s);
+      }
+      asteroids.addAll(_generator.asteroidsBetween(prev, next));
     }
   }
 
@@ -297,6 +401,9 @@ class GameWorld {
     planets.removeWhere((p) =>
         p.baseCenter.dy > limit && !identical(p, comet.planet) && !identical(p, comet.lastPlanet));
     stardust.removeWhere((s) => s.position.dy > limit);
+    asteroids.removeWhere((a) => a.position.dy > limit);
+    wormholes.removeWhere((w) => w.position.dy > limit);
+    shields.removeWhere((s) => s.position.dy > limit);
   }
 
   static Offset _unit(double angle) => Offset(math.cos(angle), math.sin(angle));

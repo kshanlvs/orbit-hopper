@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/entities/comet_skin.dart';
+import '../../domain/entities/mission.dart';
 import '../../game/audio/game_audio.dart';
 import '../../game/logic/cosmos.dart';
 import '../../game/logic/models.dart';
@@ -14,6 +15,7 @@ import '../progress/progress_cubit.dart';
 import '../run/run_cubit.dart';
 import '../widgets/discovery_card.dart';
 import '../widgets/game_hud.dart';
+import '../widgets/missions_view.dart';
 import '../widgets/run_panels.dart';
 
 class PlayPage extends StatefulWidget {
@@ -31,6 +33,13 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
   /// Shows the departure card only when the launch point changes.
   int? _lastDepartureShown;
 
+  /// Missions active when this run started — only these can complete in it,
+  /// so a freshly generated replacement can't finish instantly.
+  List<Mission> _runMissions = const [];
+  final Set<String> _doneThisRun = {};
+  RunStats? _stats;
+  int _newDiscoveries = 0;
+
   ProgressCubit get _progress => context.read<ProgressCubit>();
 
   @override
@@ -39,6 +48,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     final start = _progress.launchIndex;
     _run = RunCubit()..restart(startLandmark: start);
+    _beginRunMissions();
     final skin = CometSkins.byId(_progress.state.selectedSkinId);
     _game = OrbitHopperGame(
       skin: skin,
@@ -51,7 +61,28 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
       onDiscovery: _handleDiscovery,
       onDepart: _handleDepart,
       onGameOver: _handleGameOver,
+      onStats: _handleStats,
     );
+  }
+
+  void _beginRunMissions() {
+    _runMissions = List.of(_progress.state.missions);
+    _doneThisRun.clear();
+    _stats = null;
+    _newDiscoveries = 0;
+  }
+
+  void _handleStats(RunStats stats) {
+    _stats = stats;
+    stats.newDiscoveries = _newDiscoveries;
+    for (final m in _runMissions) {
+      final key = m.encode();
+      if (_doneThisRun.contains(key) || !m.isDoneBy(stats)) continue;
+      _doneThisRun.add(key);
+      _progress.completeMission(m);
+      GameAudio.instance.play(Sfx.mission);
+      if (!_run.isClosed) _run.missionCompleted(m);
+    }
   }
 
   @override
@@ -78,6 +109,11 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
     final landmark = journey[landmarkIndex];
     final isNew = await _progress.discover(landmark.id);
     if (!mounted || _run.isClosed) return;
+    if (isNew) {
+      _newDiscoveries++;
+      final s = _stats;
+      if (s != null) _handleStats(s);
+    }
     _run.discovered(
       landmarkIndex: landmarkIndex,
       isNew: isNew,
@@ -100,6 +136,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
         DeathCause.moon => 'Moon strike',
         DeathCause.collapse => 'Planet collapsed',
         DeathCause.lost => 'Lost in space',
+        DeathCause.asteroid => 'Asteroid impact',
       },
     );
   }
@@ -122,6 +159,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
     final start = _progress.launchIndex;
     GameAudio.instance.setDucked(false);
     _run.restart(startLandmark: start);
+    _beginRunMissions();
     _game.restart(startLandmark: start);
   }
 
@@ -144,6 +182,7 @@ class _PlayPageState extends State<PlayPage> with WidgetsBindingObserver {
             ),
             Positioned.fill(child: RepaintBoundary(child: GameHud(onPause: _pause))),
             const Positioned.fill(child: DiscoveryOverlay()),
+            const Positioned.fill(child: MissionToast()),
             Positioned.fill(
               child: BlocBuilder<RunCubit, RunState>(
                 buildWhen: (a, b) => a.status != b.status,

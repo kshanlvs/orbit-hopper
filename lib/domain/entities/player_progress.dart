@@ -1,3 +1,5 @@
+import 'mission.dart';
+
 class PlayerProgress {
   const PlayerProgress({
     required this.bestScore,
@@ -8,6 +10,9 @@ class PlayerProgress {
     this.soundOn = true,
     this.discoveredIds = const <String>{},
     this.launchFromId = 'sun',
+    this.missions = const <Mission>[],
+    this.missionSerial = 0,
+    this.missionsCompleted = 0,
   });
 
   factory PlayerProgress.initial() => const PlayerProgress(
@@ -32,6 +37,11 @@ class PlayerProgress {
   /// Checkpoint the next run starts from (a discovered landmark id).
   final String launchFromId;
 
+  /// The three active missions.
+  final List<Mission> missions;
+  final int missionSerial;
+  final int missionsCompleted;
+
   PlayerProgress copyWith({
     int? bestScore,
     int? stardust,
@@ -41,6 +51,9 @@ class PlayerProgress {
     bool? soundOn,
     Set<String>? discoveredIds,
     String? launchFromId,
+    List<Mission>? missions,
+    int? missionSerial,
+    int? missionsCompleted,
   }) {
     return PlayerProgress(
       bestScore: bestScore ?? this.bestScore,
@@ -51,6 +64,9 @@ class PlayerProgress {
       soundOn: soundOn ?? this.soundOn,
       discoveredIds: discoveredIds ?? this.discoveredIds,
       launchFromId: launchFromId ?? this.launchFromId,
+      missions: missions ?? this.missions,
+      missionSerial: missionSerial ?? this.missionSerial,
+      missionsCompleted: missionsCompleted ?? this.missionsCompleted,
     );
   }
 }

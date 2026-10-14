@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/comet_skin.dart';
+import '../../domain/entities/mission.dart';
 import '../../domain/entities/player_progress.dart';
 import '../../domain/repositories/progress_repository.dart';
 import '../../game/audio/game_audio.dart';
@@ -14,7 +15,60 @@ class ProgressCubit extends Cubit<PlayerProgress> {
 
   final ProgressRepository _repository;
 
-  Future<void> load() async => emit(await _repository.load());
+  Future<void> load() async {
+    emit(await _repository.load());
+    await _topUpMissions();
+  }
+
+  static const missionSlots = 3;
+
+  /// Keeps three active missions, generating new ones as needed.
+  Future<void> _topUpMissions() async {
+    if (state.missions.length >= missionSlots) return;
+    final missions = [...state.missions];
+    var serial = state.missionSerial;
+    while (missions.length < missionSlots) {
+      missions.add(_newMission(serial++, missions));
+    }
+    final next = state.copyWith(missions: missions, missionSerial: serial);
+    emit(next);
+    await _repository.save(next);
+  }
+
+  Mission _newMission(int serial, List<Mission> active) {
+    final exclude = {for (final m in active) m.kind};
+    final allFound = [for (var k = 1; k < journey.length; k++) isDiscovered(k)].every((d) => d);
+    if (allFound) exclude.add(MissionKind.discover);
+    return Mission.generate(serial: serial, completed: state.missionsCompleted, exclude: exclude);
+  }
+
+  /// Marks [mission] done: pays its reward and replaces it with a new one.
+  Future<void> completeMission(Mission mission) async {
+    final i = state.missions.indexWhere((m) => m.encode() == mission.encode());
+    if (i < 0) return;
+    final missions = [...state.missions]..removeAt(i);
+    final replacement = _newMission(state.missionSerial, missions);
+    missions.insert(i, replacement);
+    final next = state.copyWith(
+      missions: missions,
+      missionSerial: state.missionSerial + 1,
+      missionsCompleted: state.missionsCompleted + 1,
+      stardust: state.stardust + mission.reward,
+    );
+    emit(next);
+    await _repository.save(next);
+  }
+
+  /// Furthest real place ever discovered (journey index).
+  int get furthestDiscovered {
+    var best = 0;
+    for (var k = 1; k < journey.length; k++) {
+      if (isDiscovered(k)) best = k;
+    }
+    return best;
+  }
+
+  String get rank => Cosmos.rankFor(furthestDiscovered);
 
   /// Saves a finished run. Returns true when it set a new best score.
   Future<bool> recordRun({required int score, required int stardustEarned}) async {

@@ -102,6 +102,52 @@ class LevelGenerator {
     return _landmark(k, Offset(x, prev.baseCenter.dy - dy));
   }
 
+  /// Rocks drifting across the gap, only in asteroid regions. Never on the
+  /// approach to a real place, so discoveries stay calm.
+  List<Asteroid> asteroidsBetween(Planet a, Planet b) {
+    if (b.landmark != null || a.landmark != null || !Cosmos.regionAt(b.index).asteroids) {
+      return const <Asteroid>[];
+    }
+    final count = _rng.nextDouble() < 0.4 ? 2 : 1;
+    final dir = _rng.nextBool() ? 1.0 : -1.0;
+    return [
+      for (var i = 0; i < count; i++)
+        Asteroid(
+          position: Offset(
+            _range(0, width),
+            a.baseCenter.dy + (b.baseCenter.dy - a.baseCenter.dy) * _range(0.42, 0.58),
+          ),
+          speed: dir * _range(55, 105) * (i.isEven ? 1 : 0.8),
+          radius: _range(7, 11),
+          spin: _range(-2, 2),
+          seed: _rng.nextInt(1000),
+        ),
+    ];
+  }
+
+  /// A rare wormhole beside the path. It warps up to 3 hops ahead but never
+  /// past the next real place (you land right on it instead).
+  Wormhole? wormholeBetween(Planet a, Planet b) {
+    if (b.index < 8 || _rng.nextDouble() > 0.11) return null;
+    final nextLandmark = (a.index ~/ hopsPerLandmark + 1) * hopsPerLandmark;
+    final target = math.min(a.index + 4, nextLandmark);
+    if (target < b.index + 1) return null;
+    final mid = Offset.lerp(a.baseCenter, b.baseCenter, 0.5)!;
+    final side = mid.dx < width / 2 ? 1.0 : -1.0;
+    final pos = Offset((mid.dx + side * _range(70, 110)).clamp(40.0, width - 40.0).toDouble(), mid.dy);
+    final clearA = (pos - a.baseCenter).distance > a.outerRadius + a.driftAmplitude + Wormhole.radius + 14;
+    final clearB = (pos - b.baseCenter).distance > b.outerRadius + b.driftAmplitude + Wormhole.radius + 14;
+    if (!clearA || !clearB) return null;
+    return Wormhole(pos, target, _range(0, math.pi * 2));
+  }
+
+  /// A rare shield bubble, offset from the direct line between planets.
+  ShieldPickup? shieldBetween(Planet a, Planet b) {
+    if (b.index < 10 || _rng.nextDouble() > 0.07) return null;
+    final p = Offset.lerp(a.baseCenter, b.baseCenter, _range(0.4, 0.6))!;
+    return ShieldPickup(Offset((p.dx + _range(-40, 40)).clamp(30.0, width - 30.0).toDouble(), p.dy));
+  }
+
   /// Sometimes places a short line of stardust between two planets,
   /// rewarding a clean, direct jump.
   List<Stardust> stardustBetween(Planet a, Planet b) {

@@ -15,6 +15,10 @@ enum Sfx {
   reveal('reveal.wav', 0.9, 1),
   ping('ping.wav', 0.5, 2),
   warp('warp.wav', 0.6, 1),
+  wormhole('wormhole.wav', 0.75, 1),
+  shield('shield.wav', 0.55, 1),
+  shieldBreak('shield_break.wav', 0.7, 1),
+  mission('mission.wav', 0.6, 1),
   uiTap('ui_tap.wav', 0.35, 2);
 
   const Sfx(this.file, this.volume, this.voices);

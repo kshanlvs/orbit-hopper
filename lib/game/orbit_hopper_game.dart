@@ -23,6 +23,7 @@ typedef JourneyCallback = void Function(int bestIndex);
 typedef TravelCallback = void Function(double travelIndex);
 typedef LandmarkCallback = void Function(int landmarkIndex);
 typedef GameOverCallback = void Function(int score, int stardust, int bestIndex, DeathCause cause);
+typedef StatsCallback = void Function(RunStats stats);
 
 /// Flame shell around [GameWorld]: drives the loop, draws the cosmos,
 /// adds juice (particles, slow motion, warp streaks, sound) and reports to the UI.
@@ -38,6 +39,7 @@ class OrbitHopperGame extends FlameGame {
     required this.onDiscovery,
     required this.onDepart,
     required this.onGameOver,
+    required this.onStats,
     GameAudio? audio,
   }) : audio = audio ?? GameAudio.instance;
 
@@ -55,9 +57,14 @@ class OrbitHopperGame extends FlameGame {
   final LandmarkCallback onDepart;
   final GameOverCallback onGameOver;
 
+  /// Fired whenever run stats change (for missions).
+  final StatsCallback onStats;
+
   static const _goldColor = AppColors.gold;
   static const _dangerColor = AppColors.danger;
   static const _signalColor = Color(0xFF7CF5FF);
+  static const _wormholeColor = Color(0xFFB57CFF);
+  static const _shieldColor = Color(0xFF5CFFB0);
 
   GameWorld? _sim;
   Starfield? _stars;
@@ -257,6 +264,16 @@ class OrbitHopperGame extends FlameGame {
 
   void _consumeEvents(GameWorld sim) {
     final hasDiscovery = sim.events.any((x) => x.type == WorldEventType.discovery);
+    var statsChanged = false;
+    for (final e in sim.events) {
+      switch (e.type) {
+        case WorldEventType.capture || WorldEventType.stardust || WorldEventType.wormhole ||
+              WorldEventType.shieldBreak:
+          statsChanged = true;
+        default:
+          break;
+      }
+    }
     for (final e in sim.events) {
       switch (e.type) {
         case WorldEventType.launch:
@@ -335,6 +352,30 @@ class OrbitHopperGame extends FlameGame {
           onDiscovery(k);
         case WorldEventType.depart:
           onDepart(e.value);
+        case WorldEventType.wormhole:
+          HapticFeedback.heavyImpact();
+          audio.play(Sfx.wormhole);
+          _flash = 0.7;
+          _flashColor = _wormholeColor;
+          _starSpeed = 5000; // instant hyperspace streaks
+          _effects.ring(e.position, _wormholeColor, maxRadius: 120, life: 0.7, width: 5);
+          _effects.burst(e.position, _wormholeColor, count: 30, speed: 260, life: 0.7);
+          final arrive = sim.comet.position;
+          _effects.ring(arrive, _wormholeColor, maxRadius: 90, life: 0.8, width: 4);
+          _effects.text('WARP +${e.value} HOPS', arrive + const Offset(0, -70), _wormholeColor, size: 22, life: 1.3);
+        case WorldEventType.shieldGet:
+          HapticFeedback.mediumImpact();
+          audio.play(Sfx.shield);
+          _effects.ring(e.position, _shieldColor, maxRadius: 60, life: 0.5, width: 3);
+          _effects.text('SHIELD', e.position + const Offset(0, -30), _shieldColor, size: 18);
+        case WorldEventType.shieldBreak:
+          HapticFeedback.heavyImpact();
+          audio.play(Sfx.shieldBreak);
+          _shake = math.max(_shake, 8.0);
+          _slowMo(0.4, 0.3);
+          _effects.burst(sim.comet.position, _shieldColor, count: 36, speed: 280, life: 0.8, size: 2.6);
+          _effects.ring(sim.comet.position, _shieldColor, maxRadius: 70, life: 0.5, width: 4);
+          _effects.text('SAVED!', sim.comet.position + const Offset(0, -34), _shieldColor, size: 20);
         case WorldEventType.death:
           HapticFeedback.heavyImpact();
           audio.play(Sfx.death);
@@ -353,6 +394,7 @@ class OrbitHopperGame extends FlameGame {
       }
     }
     sim.events.clear();
+    if (statsChanged) onStats(sim.stats);
   }
 
   // ---------------------------------------------------------------- render
@@ -389,9 +431,22 @@ class OrbitHopperGame extends FlameGame {
       if (s.collected || s.position.dy < top || s.position.dy > bottom) continue;
       _drawStardust(canvas, s);
     }
+    for (final wh in sim.wormholes) {
+      if (wh.position.dy < top || wh.position.dy > bottom) continue;
+      _drawWormhole(canvas, wh, sim);
+    }
+    for (final s in sim.shields) {
+      if (s.collected || s.position.dy < top || s.position.dy > bottom) continue;
+      _drawShieldPickup(canvas, s);
+    }
+    for (final a in sim.asteroids) {
+      if (a.position.dy < top || a.position.dy > bottom) continue;
+      GlowSprites.draw(canvas, a.position, a.radius * 2.4, _dangerColor, opacity: 0.35);
+      BodySprites.draw(canvas, a.position, a.radius, asteroidLook, _time, seed: a.seed);
+    }
     _drawGuide(canvas, sim);
     _drawTrail(canvas);
-    if (!sim.isDead) _drawComet(canvas, sim.comet.position);
+    if (!sim.isDead) _drawComet(canvas, sim);
     _effects.render(canvas);
     canvas.restore();
 
@@ -558,13 +613,66 @@ class OrbitHopperGame extends FlameGame {
     }
   }
 
-  void _drawComet(Canvas canvas, Offset pos) {
+  void _drawComet(Canvas canvas, GameWorld sim) {
+    final pos = sim.comet.position;
+    // Blink while invulnerable after a shield breaks.
+    if (sim.invulnerable > 0 && (_time * 14).floor().isEven) return;
     final color = _cometColor(0);
     GlowSprites.draw(canvas, pos, 22, color, opacity: 0.85);
     _fill.color = color;
     canvas.drawCircle(pos, GameWorld.cometRadius, _fill);
     _fill.color = Colors.white;
     canvas.drawCircle(pos, GameWorld.cometRadius * 0.5, _fill);
+    if (sim.shield) {
+      final pulse = 0.5 + 0.5 * math.sin(_time * 5);
+      GlowSprites.draw(canvas, pos, 20, _shieldColor, opacity: 0.25);
+      _stroke
+        ..color = _shieldColor.fade(0.55 + 0.35 * pulse)
+        ..strokeWidth = 2;
+      canvas.drawCircle(pos, 14 + pulse, _stroke);
+    }
+  }
+
+  /// Swirling portal: spinning arcs around a dark core.
+  void _drawWormhole(Canvas canvas, Wormhole w, GameWorld sim) {
+    final c = w.position;
+    const r = Wormhole.radius;
+    final fade = w.used ? 0.3 : 1.0;
+    GlowSprites.draw(canvas, c, r * 2.6, _wormholeColor, opacity: 0.55 * fade);
+    _stroke.strokeCap = StrokeCap.round;
+    for (var i = 0; i < 4; i++) {
+      final rr = r * (0.45 + i * 0.2);
+      final spin = _time * (2.6 - i * 0.4) + w.phase + i;
+      _stroke
+        ..color = Color.lerp(_signalColor, _wormholeColor, i / 3)!.fade((0.9 - i * 0.15) * fade)
+        ..strokeWidth = 3 - i * 0.5;
+      canvas.drawArc(Rect.fromCircle(center: c, radius: rr), spin, math.pi * 1.2, false, _stroke);
+    }
+    _stroke.strokeCap = StrokeCap.butt;
+    _fill.color = Colors.black.fade(0.85 * fade);
+    canvas.drawCircle(c, r * 0.32, _fill);
+    if (!w.used) {
+      final hops = w.targetIndex - sim.bestIndex;
+      if (hops > 1) {
+        TextSprites.draw(canvas, 'WARP +$hops', c + const Offset(0, r + 14),
+            fontSize: 10, color: _wormholeColor, letterSpacing: 2, opacity: 0.85);
+      }
+    }
+  }
+
+  void _drawShieldPickup(Canvas canvas, ShieldPickup s) {
+    final bob = math.sin(_time * 3 + s.position.dx) * 3;
+    final c = s.position + Offset(0, bob);
+    final pulse = 0.5 + 0.5 * math.sin(_time * 4);
+    GlowSprites.draw(canvas, c, 22, _shieldColor, opacity: 0.5 + 0.2 * pulse);
+    _stroke
+      ..color = _shieldColor
+      ..strokeWidth = 2.2;
+    canvas.drawCircle(c, 10, _stroke);
+    _fill.color = _shieldColor.fade(0.35);
+    canvas.drawCircle(c, 10, _fill);
+    _fill.color = Colors.white.fade(0.8);
+    canvas.drawCircle(c + const Offset(-3, -3), 2.5, _fill);
   }
 
   void _drawDangerVignette(Canvas canvas, GameWorld sim, double w, double h) {

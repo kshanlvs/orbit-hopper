@@ -131,6 +131,14 @@ class _DiscoveryCard extends StatelessWidget {
                         color: AppColors.accent, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1),
                   ),
                 ],
+                if (!depart && discovery.isNew && Cosmos.isRankUp(k)) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'RANK UP: ${Cosmos.rankFor(k).toUpperCase()}',
+                    style: const TextStyle(
+                        color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+                  ),
+                ],
                 if (!depart) ...[
                   const SizedBox(height: 6),
                   Text(

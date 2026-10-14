@@ -50,6 +50,7 @@ class Region {
     required this.fillers,
     required this.mood,
     this.backdrop = Backdrop.none,
+    this.asteroids = false,
   });
 
   final String name;
@@ -60,6 +61,9 @@ class Region {
   final List<BodyLook> fillers;
   final Backdrop backdrop;
   final Mood mood;
+
+  /// Rocks drift across the gaps between planets in this region.
+  final bool asteroids;
 }
 
 class Landmark {
@@ -94,6 +98,9 @@ class Landmark {
 
 // ------------------------------------------------------------------ regions
 
+/// Look of the drifting asteroids.
+const asteroidLook = BodyLook(BodyStyle.cratered, 0xFF8A8580, 0xFF4A4642);
+
 const _rockGrey = BodyLook(BodyStyle.cratered, 0xFF9A9A9E, 0xFF5E5E66);
 const _rockBrown = BodyLook(BodyStyle.rocky, 0xFF9C7A5B, 0xFF5A4232);
 const _rockDark = BodyLook(BodyStyle.cratered, 0xFF6F6A66, 0xFF3A3634);
@@ -126,6 +133,7 @@ const _asteroidBelt = Region(
   topArgb: 0xFF0B0907,
   bottomArgb: 0xFF22180F,
   fillers: [_rockGrey, _rockBrown, _rockDark],
+  asteroids: true,
 );
 const _outerSystem = Region(
   mood: Mood.outer,
@@ -140,6 +148,7 @@ const _kuiperBelt = Region(
   topArgb: 0xFF04060D,
   bottomArgb: 0xFF0B1424,
   fillers: [_icePale, _rockDark, _iceBlue],
+  asteroids: true,
 );
 const _heliopause = Region(
   mood: Mood.outer,
@@ -565,6 +574,23 @@ abstract final class Cosmos {
 
   static String distanceLabelAt(num index) =>
       isBeyondMap(index.floor()) ? 'Beyond the observable universe' : formatDistance(distanceAuAt(index));
+
+  /// Explorer rank earned by reaching journey landmark [k].
+  static String rankFor(int k) {
+    if (k >= journey.length - 1) return 'Master of the Universe';
+    if (k >= 18) return 'Cosmic Navigator';
+    if (k >= 16) return 'Galaxy Wanderer';
+    if (k >= 13) return 'Star Sailor';
+    if (k >= 11) return 'Interstellar Voyager';
+    if (k >= 9) return 'Edge Walker';
+    if (k >= 6) return 'Giant Rider';
+    if (k >= 5) return 'Belt Runner';
+    if (k >= 3) return 'Planet Hopper';
+    return 'Solar Cadet';
+  }
+
+  /// True when reaching landmark [k] earns a new rank.
+  static bool isRankUp(int k) => k > 0 && rankFor(k) != rankFor(k - 1);
 
   static int indexOfId(String id) {
     final k = journey.indexWhere((l) => l.id == id);

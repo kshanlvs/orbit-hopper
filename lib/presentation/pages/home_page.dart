@@ -14,6 +14,7 @@ import '../../game/render/sprites.dart';
 import '../../game/render/starfield.dart';
 import '../progress/progress_cubit.dart';
 import '../widgets/glow_button.dart';
+import '../widgets/missions_view.dart';
 import '../widgets/stardust_badge.dart';
 
 class HomePage extends StatefulWidget {
@@ -58,7 +59,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               SafeArea(
                 child: BlocBuilder<ProgressCubit, PlayerProgress>(
-                  builder: (context, progress) => _content(context, progress),
+                  builder: (context, progress) => _content(context, progress, compact: size.height < 760),
                 ),
               ),
             ],
@@ -68,7 +69,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _content(BuildContext context, PlayerProgress progress) {
+  Widget _content(BuildContext context, PlayerProgress progress, {required bool compact}) {
     final skin = CometSkins.byId(progress.selectedSkinId);
     final cubit = context.read<ProgressCubit>();
     final launch = cubit.launchIndex;
@@ -87,14 +88,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
-                child: Text(
-                  'BEST ${progress.bestScore}  ·  🌍 ${progress.discoveredIds.where((id) => journey.any((l) => l.id == id)).length}/${journey.length}',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textDim,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      cubit.rank.toUpperCase(),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'BEST ${progress.bestScore}  ·  🌍 ${progress.discoveredIds.where((id) => journey.any((l) => l.id == id)).length}/${journey.length}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textDim,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Row(
@@ -115,20 +134,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           const Spacer(flex: 2),
           const _Title(),
-          const SizedBox(height: 10),
-          const Text(
-            'Fly from the Sun to the edge of the universe.\nLand on real planets, stars and galaxies.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textDim, height: 1.5),
-          ),
+          if (!compact) ...[
+            const SizedBox(height: 10),
+            const Text(
+              'Fly from the Sun to the edge of the universe.\nLand on real planets, stars and galaxies.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textDim, height: 1.5),
+            ),
+          ],
           const Spacer(),
           SizedBox(
-            height: 160,
+            height: compact ? 116 : 160,
             child: RepaintBoundary(
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) => CustomPaint(
-                  size: const Size(double.infinity, 160),
+                  size: Size(double.infinity, compact ? 116 : 160),
                   painter: _HeroPainter(
                     _clock.elapsedMilliseconds / 1000,
                     Color(skin.argb),
@@ -171,6 +192,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             filled: false,
             onPressed: () => context.push(AppRoutes.journey),
           ),
+          const SizedBox(height: 14),
+          _MissionsChip(progress: progress),
           const SizedBox(height: 14),
           GlowButton(
             label: 'COMETS',
@@ -254,8 +277,8 @@ class _HeroPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
-    const r = 34.0;
-    const orbit = 66.0;
+    final r = size.height * 0.21;
+    final orbit = size.height * 0.41;
 
     canvas.drawCircle(
       c,
@@ -292,4 +315,50 @@ class _HeroPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_HeroPainter old) => old.time != time || old.color != color;
+}
+
+/// Compact "3 missions · up to +150 ✦" entry that opens the missions sheet.
+class _MissionsChip extends StatelessWidget {
+  const _MissionsChip({required this.progress});
+
+  final PlayerProgress progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = progress.missions.fold<int>(0, (sum, m) => sum + m.reward);
+    return GestureDetector(
+      onTap: () => showMissionsSheet(context),
+      child: Container(
+        width: 240,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: const Color(0xFF5CFFB0).fade(0.07),
+          border: Border.all(color: const Color(0xFF5CFFB0).fade(0.45)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.flag_rounded, color: Color(0xFF5CFFB0), size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${progress.missions.length} MISSIONS',
+                style: const TextStyle(
+                  color: Color(0xFF5CFFB0),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Text(
+              '+$total ✦',
+              style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w800),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+          ],
+        ),
+      ),
+    );
+  }
 }
