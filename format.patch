@@ -1,0 +1,25 @@
+diff --git a/lib/neon/ui/lab_page.dart b/lib/neon/ui/lab_page.dart
+index 97cb4fe..ebf837a 100644
+--- a/lib/neon/ui/lab_page.dart
++++ b/lib/neon/ui/lab_page.dart
+@@ -144,7 +144,8 @@ class _NeonLabPageState extends State<NeonLabPage> {
+             name: s.name,
+             color: SkinLook.of(s.id).glow,
+             second: SkinLook.of(s.id).core,
+-            status: p.skin == s.id ? 'EQUIPPED' : (p.ownedSkins.contains(s.id) ? 'OWNED' : '${formatInt(s.price)} ENERGY'),
++            status:
++                p.skin == s.id ? 'EQUIPPED' : (p.ownedSkins.contains(s.id) ? 'OWNED' : '${formatInt(s.price)} ENERGY'),
+             locked: !p.ownedSkins.contains(s.id),
+             selected: skin == s.id,
+           ),
+@@ -155,7 +156,9 @@ class _NeonLabPageState extends State<NeonLabPage> {
+             name: t.name,
+             color: SkinLook.of(p.skin).glow,
+             second: NeonColors.panel,
+-            status: p.trail == t.id ? 'EQUIPPED' : (p.ownedTrails.contains(t.id) ? 'OWNED' : '${formatInt(t.price)} ENERGY'),
++            status: p.trail == t.id
++                ? 'EQUIPPED'
++                : (p.ownedTrails.contains(t.id) ? 'OWNED' : '${formatInt(t.price)} ENERGY'),
+             locked: !p.ownedTrails.contains(t.id),
+             selected: trail == t.id,
+           ),

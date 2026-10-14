@@ -1,0 +1,88 @@
+00:00 +0: loading /home/runner/work/orbit-hopper/orbit-hopper/test/cosmos_test.dart
+00:00 +0: /home/runner/work/orbit-hopper/orbit-hopper/test/cosmos_test.dart: journey is ordered by real distance from the Sun
+00:00 +1: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +2: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +3: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +4: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +5: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +6: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +7: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +8: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +9: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: LevelGenerator planets never overlap and stay on screen
+00:00 +10: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: Difficulty ramps up and then plateaus
+00:00 +11: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: GameWorld first planet is safe to orbit forever before the first tap
+00:00 +12: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: GameWorld some launch timing reaches planet 1 and scores
+00:00 +13: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: GameWorld a run can start from a checkpoint landmark
+00:00 +14: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: GameWorld travel index grows during flight but stays below the next hop
+00:00 +15: /home/runner/work/orbit-hopper/orbit-hopper/test/game_world_test.dart: GameWorld flying off into nothing ends the run
+00:00 +16: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: scoring multiplier grows 0.2 per chain step and caps at x5
+00:00 +17: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: scoring distance and bonuses are scaled by the multiplier
+00:00 +18: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: scoring chain breaks after the window with no good moves
+00:00 +19: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: scoring shards keep an active chain alive
+00:00 +20: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: scoring risk shards are worth double, Reality Break doubles again
+00:00 +21: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty speed rises monotonically and is capped
+00:00 +22: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty level, ratings and reaction floor stay in range
+00:00 +23: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +24: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +25: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +26: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +27: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +28: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +29: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +30: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +31: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +32: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +33: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +34: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +35: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+00:01 +36: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: difficulty later patterns unlock gradually
+STAT first-seen {trail: 0, spike_row: 7, alternator: 10, narrow: 25, float_trap: 99, laser_gate: 101, risk_gate: 124, rotor: 283, movers: 320, spike_tunnel: 341, laser_cascade: 593, crusher: 624, double_rotor: 881, mixer: 1275, zigzag: 1318}
+00:01 +37: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: generation same seed gives the same corridor
+00:02 +38: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: generation every chunk is validated, fallbacks are rare
+00:03 +38: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: (setUpAll)
+STAT fonts: roboto=12 files=23
+00:03 +38: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: generation every chunk is validated, fallbacks are rare
+00:06 +39: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: generation every chunk is validated, fallbacks are rare
+00:08 +40: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: generation every chunk is validated, fallbacks are rare
+STAT chunks=3918 validations=3689 retries=71 fallbacks=5 peakStates=48 riskGates=275 withRiskShards=275 msPerValidation=1.96 roles={ChunkRole.breather: 471, ChunkRole.normal: 2271, ChunkRole.breakIntro: 132, ChunkRole.breakBody: 696, ChunkRole.breakOutro: 132, ChunkRole.chaseIntro: 36, ChunkRole.chaseBody: 144, ChunkRole.escape: 36}
+00:09 +41: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: every Neon Shift screen lays out at 1024x600
+00:10 +42: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: generation per-pattern validation pass rate
+STAT pattern-pass spike_row=100% alternator=100% float_trap=100% narrow=100% laser_gate=100% movers=100% rotor=77% spike_tunnel=100% laser_cascade=100% crusher=100% zigzag=100% double_rotor=100% mixer=100% risk_gate=100%
+00:10 +43: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +44: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +45: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +45: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: physics a flip crosses the corridor in about 0.2 s
+STAT flip-time=0.192s
+00:10 +46: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +47: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +48: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +49: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+00:10 +50: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/screens_test.dart: scene snapshots across dimensions and events
+STAT shot core_start s=6 chunk=trail role=breather break=null chase=false hazards=0 risk=false
+STAT shot core_patterns s=60 chunk=trail role=breather break=null chase=false hazards=0 risk=false
+STAT shot sunset_break s=100 chunk=alternator role=breakBody break=twist chase=false hazards=5 risk=false
+STAT shot toxic_risk s=200 chunk=narrow role=normal break=null chase=false hazards=2 risk=false
+STAT shot ice_chase s=335 chunk=alternator role=chaseBody break=null chase=true hazards=8 risk=false
+STAT shot inferno_late s=640 chunk=risk_gate role=normal break=null chase=false hazards=5 risk=true
+STAT shot void_late s=900 chunk=spike_tunnel role=normal break=null chase=false hazards=9 risk=false
+00:26 +51: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +52: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +53: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +54: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +55: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +56: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +57: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +58: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +59: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +60: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +61: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +62: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +63: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+00:27 +64: /home/runner/work/orbit-hopper/orbit-hopper/test/neon/engine_test.dart: world a route-following bot survives long runs on many seeds
+STAT bot seed=1 dist=1400 alive=true cause= score=90671 bestChain=81 shards=354 nearMiss=248 breaks=8 escapes=3 dashes=29 risk=0 failedPlans=0/272
+STAT bot seed=2 dist=1400 alive=true cause= score=79984 bestChain=64 shards=322 nearMiss=262 breaks=8 escapes=3 dashes=26 risk=0 failedPlans=0/276
+STAT bot seed=3 dist=1400 alive=true cause= score=92718 bestChain=90 shards=322 nearMiss=257 breaks=8 escapes=3 dashes=26 risk=0 failedPlans=0/260
+STAT bot seed=2026 dist=1400 alive=true cause= score=78930 bestChain=66 shards=337 nearMiss=250 breaks=8 escapes=3 dashes=28 risk=0 failedPlans=0/266
+STAT bot seed=77777 dist=1400 alive=true cause= score=84070 bestChain=63 shards=371 nearMiss=246 breaks=8 escapes=3 dashes=30 risk=0 failedPlans=0/279
+STAT bot total=7000 ms=93811
+01:44 +65: All tests passed!

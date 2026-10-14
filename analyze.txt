@@ -1,0 +1,13 @@
+Analyzing orbit-hopper...                                       
+
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/neon/ui/preview.dart:118:13 • curly_braces_in_flow_control_structures
+   info • Use interpolation to compose strings and values. Try using string interpolation to build the composite string • lib/presentation/widgets/discovery_card.dart:89:15 • prefer_interpolation_to_compose_strings
+   info • Type could be non-nullable. Try changing the type to be non-nullable • lib/presentation/widgets/game_hud.dart:123:21 • unnecessary_nullable_for_final_variable_declarations
+   info • The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_test/flutter_test.dart'. Try removing the import directive • test/cosmos_test.dart:1:8 • unnecessary_import
+   info • The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_test/flutter_test.dart'. Try removing the import directive • test/game_world_test.dart:1:8 • unnecessary_import
+   info • The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_test/flutter_test.dart'. Try removing the import directive • test/hazards_and_missions_test.dart:1:8 • unnecessary_import
+   info • The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/services.dart'. Try removing the import directive • test/neon/fonts.dart:2:8 • unnecessary_import
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • test/neon/screens_test.dart:145:13 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • test/neon/screens_test.dart:147:13 • curly_braces_in_flow_control_structures
+
+9 issues found. (ran in 9.4s)
