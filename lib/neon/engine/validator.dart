@@ -126,7 +126,14 @@ abstract final class RouteValidator {
           final key = _key(probe.y, probe.vy, probe.g);
           final at = index[key];
           if (at != null) {
+            // Keep the state with the most freedom (shortest tap cooldown).
+            // Replace the whole state, not just its parent, so every stored
+            // state is exactly what its recorded parent + action produce:
+            // extracted routes are then exact replays of the real physics.
             if (cd < ncd[at]) {
+              ny[at] = probe.y;
+              nvy[at] = probe.vy;
+              ng[at] = probe.g;
               ncd[at] = cd;
               par[at] = i;
               flip[at] = flipNow ? 1 : 0;

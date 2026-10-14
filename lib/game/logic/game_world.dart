@@ -399,14 +399,18 @@ class GameWorld {
     }
     final k = d.killer;
     if (k == null) return;
-    // Sways side to side as it hurtles toward Earth.
+    _swayKiller(d, k);
+    k.angle += dt * 0.8;
+    // Fell behind the camera? It slips ahead again — keep chasing.
+    if (k.position.dy > cameraY + height + 60) _spawnKiller();
+  }
+
+  /// Sways the killer side to side as it hurtles toward Earth.
+  void _swayKiller(DefenseState d, KillerAsteroid k) {
     final x = (k.base.dx + math.sin(d.timeLeft * 0.9 + k.phase) * k.sway)
         .clamp(KillerAsteroid.radius + 8, width - KillerAsteroid.radius - 8)
         .toDouble();
     k.position = Offset(x, k.base.dy);
-    k.angle += dt * 0.8;
-    // Fell behind the camera? It slips ahead again — keep chasing.
-    if (k.position.dy > cameraY + height + 60) _spawnKiller();
   }
 
   /// Places the killer asteroid in the first gap ahead (after the next
@@ -443,7 +447,9 @@ class GameWorld {
       if (spotSlack >= 0) break; // good enough — nearest clear gap wins
     }
     if (spot == null) return;
-    d.killer = KillerAsteroid(spot, _rngPhase(), sway: spotSlack.clamp(0.0, 45.0).toDouble());
+    final killer = KillerAsteroid(spot, _rngPhase(), sway: spotSlack.clamp(0.0, 45.0).toDouble());
+    _swayKiller(d, killer); // place it where it will be drawn, from frame one
+    d.killer = killer;
     // Clear debris near it so the intercept is fair.
     final y = spot.dy;
     asteroids.removeWhere((r) => (r.position.dy - y).abs() < 80);
