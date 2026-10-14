@@ -9,7 +9,9 @@ import '../../core/router/app_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/comet_skin.dart';
 import '../../domain/entities/player_progress.dart';
+import '../../game/audio/game_audio.dart';
 import '../../game/logic/cosmos.dart';
+import '../../hole/logic/size_scale.dart';
 import '../../game/render/sprites.dart';
 import '../../game/render/starfield.dart';
 import '../progress/progress_cubit.dart';
@@ -195,7 +197,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             onPressed: () => context.push(AppRoutes.play),
           ),
           const SizedBox(height: 14),
-          _SaveEarthButton(level: progress.defenseLevel),
+          SizedBox(
+            width: 290,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _ModeTile(
+                  title: 'SAVE EARTH',
+                  subtitle: 'THREAT LV ${progress.defenseLevel}',
+                  icon: Icons.public_rounded,
+                  color: AppColors.danger,
+                  pulse: true,
+                  onTap: () => context.push(AppRoutes.defense),
+                ),
+                _ModeTile(
+                  title: 'BLACK HOLE',
+                  subtitle: progress.holeBestRadius > 0
+                      ? 'BEST ${formatLength(progress.holeBestRadius * 2)}'
+                      : 'EAT THE UNIVERSE',
+                  icon: Icons.blur_circular_rounded,
+                  color: const Color(0xFFB57CFF),
+                  badge: progress.holeBestRadius > 0 ? null : 'NEW',
+                  onTap: () => context.push(AppRoutes.hole),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 14),
           SizedBox(
             width: 290,
@@ -381,17 +408,31 @@ class _MissionsChip extends StatelessWidget {
   }
 }
 
-/// Urgent red "SAVE EARTH" entry with a pulsing threat badge.
-class _SaveEarthButton extends StatefulWidget {
-  const _SaveEarthButton({required this.level});
+/// A compact game-mode button: title, subtitle and an optional badge.
+class _ModeTile extends StatefulWidget {
+  const _ModeTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.badge,
+    this.pulse = false,
+  });
 
-  final int level;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final String? badge;
+  final bool pulse;
 
   @override
-  State<_SaveEarthButton> createState() => _SaveEarthButtonState();
+  State<_ModeTile> createState() => _ModeTileState();
 }
 
-class _SaveEarthButtonState extends State<_SaveEarthButton> with SingleTickerProviderStateMixin {
+class _ModeTileState extends State<_ModeTile> with SingleTickerProviderStateMixin {
   late final AnimationController _pulse =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
 
@@ -403,41 +444,72 @@ class _SaveEarthButtonState extends State<_SaveEarthButton> with SingleTickerPro
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        GlowButton(
-          label: 'SAVE EARTH',
-          icon: Icons.public_rounded,
-          color: AppColors.danger,
-          width: 290,
-          onPressed: () => context.push(AppRoutes.defense),
-        ),
-        Positioned(
-          right: -4,
-          top: -10,
-          child: FadeTransition(
-            opacity: Tween(begin: 0.55, end: 1.0).animate(_pulse),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    final c = widget.color;
+    return GestureDetector(
+      onTap: () {
+        GameAudio.instance.play(Sfx.uiTap);
+        widget.onTap();
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, child) => Container(
+              width: 140,
+              height: 64,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: AppColors.gold,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [BoxShadow(color: AppColors.gold.fade(0.6), blurRadius: 10)],
+                color: c.fade(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: c.fade(0.75), width: 1.6),
+                boxShadow: [
+                  BoxShadow(color: c.fade(widget.pulse ? 0.15 + 0.25 * _pulse.value : 0.2), blurRadius: 18),
+                ],
               ),
-              child: Text(
-                'THREAT LV ${widget.level}',
-                style: const TextStyle(
-                  color: AppColors.background,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1,
+              child: child,
+            ),
+            child: Row(
+              children: [
+                Icon(widget.icon, color: c, size: 22),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: TextStyle(color: c, fontWeight: FontWeight.w900, fontSize: 13.5, letterSpacing: 1),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.subtitle,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 9.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.badge != null)
+            Positioned(
+              right: -4,
+              top: -9,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(9)),
+                child: Text(
+                  widget.badge!,
+                  style: const TextStyle(
+                      color: AppColors.background, fontSize: 9.5, fontWeight: FontWeight.w900, letterSpacing: 1),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

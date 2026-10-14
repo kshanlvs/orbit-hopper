@@ -133,8 +133,11 @@ abstract final class BodySprites {
     int seed = 0,
     double revealed = 1,
     double opacity = 1,
+    double? cacheRadius,
   }) {
-    final r = (radius / 2).roundToDouble() * 2; // quantise for cache hits
+    // Quantise for cache hits. Callers whose sizes change every frame (the
+    // zooming black hole game) pass a fixed [cacheRadius] and get scaled.
+    final r = cacheRadius ?? (radius / 2).roundToDouble() * 2;
     final img = _image(look, r, seed);
     final size = r * BodyRenderer.extent(look.style) * 2;
     final logical = Size(size, size);

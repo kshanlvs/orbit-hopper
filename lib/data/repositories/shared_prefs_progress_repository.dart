@@ -22,6 +22,7 @@ class SharedPrefsProgressRepository implements ProgressRepository {
   static const _kMissionsDone = 'oh_missions_done';
   static const _kDefenseLevel = 'oh_defense_level';
   static const _kEarthsSaved = 'oh_earths_saved';
+  static const _kHoleBest = 'oh_hole_best';
 
   @override
   Future<PlayerProgress> load() async {
@@ -44,6 +45,7 @@ class SharedPrefsProgressRepository implements ProgressRepository {
       missionsCompleted: _prefs.getInt(_kMissionsDone) ?? 0,
       defenseLevel: _prefs.getInt(_kDefenseLevel) ?? 1,
       earthsSaved: _prefs.getInt(_kEarthsSaved) ?? 0,
+      holeBestRadius: _prefs.getDouble(_kHoleBest) ?? 0,
     );
   }
 
@@ -63,6 +65,7 @@ class SharedPrefsProgressRepository implements ProgressRepository {
       _prefs.setInt(_kMissionsDone, progress.missionsCompleted),
       _prefs.setInt(_kDefenseLevel, progress.defenseLevel),
       _prefs.setInt(_kEarthsSaved, progress.earthsSaved),
+      _prefs.setDouble(_kHoleBest, progress.holeBestRadius),
     ]);
   }
 }
