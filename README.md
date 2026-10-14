@@ -1,10 +1,15 @@
-# Orbit Hopper
+# Orbit Hopper + Neon Shift
 
-An endless one-tap space game built with Flutter + Flame.
+Two endless one-tap games built with Flutter + Flame:
+
+- **Orbit Hopper** — a comet hopping outward through the real universe (below).
+- **Neon Shift** — a neon arcade survival game: flip gravity, thread the corridor, chase the multiplier. Open it from the **NEON SHIFT** tile on the Orbit Hopper home screen, or run it on its own with `flutter run -t lib/neon_main.dart`. [Jump to Neon Shift](#neon-shift).
+
+## Orbit Hopper
 
 You are a comet starting at the Sun. **Tap** to fly off on a tangent and get caught by the next body's gravity. You travel outward through the real universe: past the planets in their true order, through the asteroid and Kuiper belts, past Voyager 1, on to nearby stars, the Milky Way's core, Andromeda and the edge of the observable universe.
 
-## Features
+### Features
 
 - **Perfect skims:** enter an orbit sideways, not head-on, for a PERFECT. Chained perfects build a combo worth up to +5 per landing.
 - **Skip bonus:** jump past a planet straight to the next one for extra points.
@@ -34,6 +39,41 @@ You are a comet starting at the Sun. **Tap** to fly off on a tangent and get cau
 - **Performance:** every planet, glow and label is drawn once into a cached image and then just blitted, with no blurs per frame, stars batched into a few draw calls, and region skies pre-rendered.
 - **Effects:** particles, shockwaves, screen shake, gold flashes, haptics, a parallax starfield and an aim guide for the first jumps.
 
+## Neon Shift
+
+A luminous orb is trapped in a collapsing neon corridor. It moves forward on its own; **tap anywhere to flip gravity** between floor and ceiling. Survive, collect energy, beat your best.
+
+- **Gravity Flip:** one tap, instant response, with squash-and-stretch, a trail and a pulse.
+- **Fair by construction:** the corridor is built from a registry of 14 handcrafted patterns (spikes, alternators, float traps, narrowing ramps, timed laser gates and cascades, sliders, crushers, rotors, twin rotors, risk gates, mixers). Each pattern has a difficulty rating and a minimum tap interval. Every generated piece is checked by a route validator that runs the real game physics over every flip/no-flip choice (from a floor start and a ceiling start, with taps at least that interval apart and an enlarged hitbox). A piece that fails is rebuilt, then replaced by a simple one. Generation is seeded, so any sequence can be reproduced.
+- **Tension curve:** waves of rising difficulty with shard-trail breathers in between. Speed, pattern complexity, spacing and event frequency all scale with distance and have caps.
+- **Near misses and Perfect Chain:** skim a hazard for a bonus and +1 chain. Collect a whole shard set for PERFECT. The multiplier (up to x5) scales everything, including distance. Go 4 seconds without a good move and the chain breaks.
+- **Pulse Dash:** 12 shards charge it. Tap ⚡ to phase through up to 3 **magenta** hazards for one second. **Cyan** hazards are always solid. Dashable shapes also carry a white diamond, so the difference isn't colour alone.
+- **Reality Break:** every ~120 m the corridor shifts for a stretch: PRISM (colour-cycling lasers and rotors), FLUX (rippling grid, sliders and crushers), TWIST (tilting camera, fast alternators) or SQUEEZE (the walls close in). Shards are worth double during a break.
+- **Risk Gates:** a divider splits the corridor into a clear SAFE lane and a RISK ×2 lane full of spikes and double-value shards, laid along a proven route.
+- **Chase:** at milestones an energy wave pursues you through a harder, faster stretch. Outrun it for an ESCAPED bonus.
+- **Screens:** animated main menu (best, energy, daily challenge), gameplay HUD, pause menu, animated game over with record celebration and instant retry, Dimension Lab (6 worlds unlocked by best score, 6 orbs and 5 trails bought with energy, live previews), Goals (daily seeded challenge, personal-best tiers, 13 achievements including no-dash and perfect-chain challenges) and Settings.
+- **Progression:** saved locally (best, runs, lifetime distance, energy, unlocks, achievements, settings). Energy comes from shards, distance, escapes, achievements, best-score tiers and the daily challenge. No real-money purchases, no ads, nothing pay-to-win; cosmetics never change the hitbox or rules.
+- **Audio and feel:** original synthesized sounds for flip, shard, rising chain chimes, near miss, dash, pierce, Reality Break, chase alarm, escape, milestone, death and new record, plus a synthwave run track and a menu track (`tool/make_neon_sounds.py`). Separate music and effects switches, haptics with a toggle.
+- **Accessibility:** reduced effects (no shake, flashes or camera twist, fewer particles), high contrast, auto-pause when leaving the app. Keyboard works too: Space flips, D dashes, P pauses.
+- **Engineering:** `lib/neon/engine` is pure Dart with fixed 120 Hz steps, shared by the game and the validator. Rendering is one Flame component drawing stroked neon tubes (no per-frame blurs), with a pooled particle system. The Flutter HUD updates at most 20 times a second.
+
+### Neon Shift structure
+
+```
+lib/neon/
+  engine/        pure Dart: rng, tuning, hazards, physics, patterns (registry), validator,
+                 generator (tension curve, breaks, chases), difficulty, scoring, neon_world
+  progression/   catalog (worlds, orbs, trails, achievements), profile (JSON), rules, NeonCubit
+  audio/         NeonAudio: pooled SFX, crossfading music, haptics
+  render/        palette (dimensions, skins), fx (particles, rings, labels, shake), scene
+  neon_game.dart Flame game: steps the world, turns events into sound/particles, draws
+  ui/            scope (orientation, profile, audio), routes, menu, play (+HUD, overlays),
+                 lab, challenges, settings, preview
+lib/neon_main.dart   standalone entry point
+test/neon/       engine (scoring, multiplier, difficulty, feasibility, bot survival),
+                 progression (currency, achievements, daily, save/load), screens (layout + screenshots)
+```
+
 ## Run it
 
 ```bash
@@ -47,11 +87,19 @@ If `pub get` reports a version conflict, run `flutter pub upgrade --major-versio
 
 All sounds were synthesized by `tool/make_sounds.py`, so they have no licensing issues. To tweak them, edit the script and run `python3 tool/make_sounds.py` (needs numpy, scipy and ffmpeg).
 
-Run the logic tests with:
+Run Neon Shift on its own:
+
+```bash
+flutter run -t lib/neon_main.dart
+```
+
+Run the tests with:
 
 ```bash
 flutter test
 ```
+
+Every push runs `.github/workflows/ci.yml`: `flutter analyze`, `flutter test` and a debug APK build (downloadable from the workflow run's artifacts).
 
 ## Structure
 

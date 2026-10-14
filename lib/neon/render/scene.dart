@@ -182,6 +182,7 @@ class NeonScene {
     final full = Rect.fromLTWH(-40, -40, w + 80, h + 80);
     _fill
       ..style = PaintingStyle.fill
+      ..color = const Color(0xFFFFFFFF) // a shader still uses the paint's alpha
       ..shader = ui.Gradient.linear(Offset(0, 0), Offset(0, h), [pal.bgTop, pal.bgBottom]);
     canvas.drawRect(full, _fill);
     _fill.shader = null;
@@ -610,11 +611,12 @@ class NeonScene {
 
   void _chaseWave(Canvas canvas, SceneFrame f, NeonPalette pal) {
     final k = f.chaseFront.clamp(0.0, 1.0);
-    final front = orbX - unit * (1.1 - 0.75 * k) + math.sin(f.time * 6) * unit * 0.025;
-    if (front < -unit * 0.2) return;
+    // The wave lives in the space behind the orb and creeps toward it.
+    final front = orbX * (0.08 + 0.62 * k) + math.sin(f.time * 6) * unit * 0.02;
     final color = pal.dash;
     _fill
       ..style = PaintingStyle.fill
+      ..color = const Color(0xFFFFFFFF)
       ..shader = ui.Gradient.linear(
         Offset(front - unit * 0.9, 0),
         Offset(front, 0),

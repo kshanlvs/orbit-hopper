@@ -16,6 +16,7 @@ import 'package:orbit_hopper/neon/ui/neon_style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'bot.dart';
+import 'fonts.dart';
 
 /// Screenshots go to build/shots/ (CI publishes them for review).
 Future<void> _save(ui.Image image, String name) async {
@@ -39,6 +40,8 @@ Future<void> _frames(WidgetTester tester, int n) async {
 }
 
 void main() {
+  setUpAll(loadRealFonts);
+
   setUp(() {
     NeonAudio.silent = true;
     SharedPreferences.setMockInitialValues({});

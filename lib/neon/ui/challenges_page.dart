@@ -30,8 +30,7 @@ class NeonChallengesPage extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 8,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                    child: ListView(
                       children: [
                         Row(
                           children: [
@@ -72,10 +71,10 @@ class NeonChallengesPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Expanded(
-                          child: NeonPanel(
+                        NeonPanel(
                             color: NeonColors.violet,
-                            child: ListView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text('PERSONAL BEST', style: NeonText.glow(13, NeonColors.violet, spacing: 2)),
                                 const SizedBox(height: 8),
@@ -87,7 +86,6 @@ class NeonChallengesPage extends StatelessWidget {
                                   ),
                               ],
                             ),
-                          ),
                         ),
                       ],
                     ),

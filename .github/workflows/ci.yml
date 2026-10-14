@@ -25,6 +25,11 @@ jobs:
           flutter create . --platforms=android --project-name orbit_hopper --org com.kshanlvs
           rm -f test/widget_test.dart
       - run: flutter pub get
+      - name: Format check (work branches publish the patch)
+        run: |
+          dart format lib/neon lib/neon_main.dart test/neon > /dev/null || true
+          git diff > format.patch || true
+          git checkout -- lib test || true
       - name: Analyze
         id: analyze
         run: |
@@ -69,11 +74,12 @@ jobs:
           echo "analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}"
           echo "::notice title=result::analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}"
           test "${{ steps.analyze.outputs.code }}" = "0" && test "${{ steps.test.outputs.code }}" = "0" && test "${{ steps.apk.outputs.code }}" = "0"
+      # Work branches publish full logs + screenshots to ci-results-<branch>.
       - name: Publish logs to a ci-results branch
-        if: always()
+        if: always() && github.ref_name != 'main'
         run: |
           mkdir -p /tmp/out
-          cp analyze.txt test.txt build.txt /tmp/out/ 2>/dev/null || true
+          cp analyze.txt test.txt build.txt format.patch /tmp/out/ 2>/dev/null || true
           cp -r build/shots /tmp/out/shots 2>/dev/null || true
           cd /tmp/out
           echo "${{ github.sha }} analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}" > RESULT

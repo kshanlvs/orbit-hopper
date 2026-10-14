@@ -47,9 +47,17 @@ class NeonMenuPage extends StatelessWidget {
                           const Spacer(),
                           _Logo(reduced: p.settings.reducedEffects),
                           const SizedBox(height: 6),
-                          Text('One tap. Flip gravity. Survive the shift.', style: NeonText.body(14, color: NeonColors.dim)),
+                          Text(
+                            'One tap. Flip gravity. Survive the shift.',
+                            style: NeonText.body(14, color: NeonColors.dim),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const Spacer(),
-                          Row(
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
                             children: [
                               NeonButton(
                                 label: 'PLAY',
@@ -78,6 +86,7 @@ class NeonMenuPage extends StatelessWidget {
                               ),
                             ],
                           ),
+                          ),
                           const Spacer(),
                         ],
                       ),
@@ -85,8 +94,10 @@ class NeonMenuPage extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       flex: 8,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Center(
+                        child: SingleChildScrollView(
+                          child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _DailyCard(
@@ -135,6 +146,8 @@ class NeonMenuPage extends StatelessWidget {
                           ),
                         ],
                       ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -181,7 +194,10 @@ class _LogoState extends State<_Logo> with SingleTickerProviderStateMixin {
           var scaleY = 1.0;
           if (t > 0.55 && t < 0.75) scaleY = math.cos((t - 0.55) / 0.2 * math.pi * 2);
           if (widget.reduced) scaleY = 1;
-          return Row(
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -189,10 +205,11 @@ class _LogoState extends State<_Logo> with SingleTickerProviderStateMixin {
               SizedBox(width: size * 0.3),
               Transform(
                 alignment: Alignment.center,
-                transform: Matrix4.diagonal3Values(1, scaleY.abs() < 0.08 ? 0.08 * scaleY.sign : scaleY, 1),
+                transform: Matrix4.diagonal3Values(1, scaleY.abs() < 0.08 ? (scaleY >= 0 ? 0.08 : -0.08) : scaleY, 1),
                 child: Text('SHIFT', style: NeonText.glow(size, NeonColors.magenta, spacing: 6)),
               ),
             ],
+            ),
           );
         },
       );
@@ -223,11 +240,18 @@ class _DailyCard extends StatelessWidget {
                   children: [
                     const Icon(Icons.calendar_today_rounded, color: NeonColors.gold, size: 16),
                     const SizedBox(width: 6),
-                    Text('DAILY CHALLENGE', style: NeonText.glow(13, NeonColors.gold, spacing: 2)),
+                    Flexible(
+                      child: Text(
+                        'DAILY CHALLENGE',
+                        style: NeonText.glow(13, NeonColors.gold, spacing: 2),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('Same corridor for everyone today.', style: NeonText.body(12, color: NeonColors.dim)),
+                Text('Same corridor for everyone today.', style: NeonText.body(12, color: NeonColors.dim), maxLines: 2),
                 const SizedBox(height: 4),
                 Text(
                   done ? 'Completed ✓  best ${formatInt(best)}' : 'Score ${formatInt(target)}  ·  +${NeonCatalog.dailyReward} energy',

@@ -49,8 +49,14 @@ class _NeonLabPageState extends State<NeonLabPage> {
                           children: [
                             NeonIconButton(icon: Icons.arrow_back_rounded, tooltip: 'Back', size: 40, onTap: () => context.pop()),
                             const SizedBox(width: 12),
-                            Text('DIMENSION LAB', style: NeonText.glow(20, NeonColors.magenta, spacing: 4)),
-                            const Spacer(),
+                            Expanded(
+                              child: Text(
+                                'DIMENSION LAB',
+                                style: NeonText.glow(20, NeonColors.magenta, spacing: 4),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                             EnergyChip(amount: p.energy, size: 17),
                           ],
                         ),
