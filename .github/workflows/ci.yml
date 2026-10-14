@@ -21,12 +21,46 @@ jobs:
         run: flutter create . --platforms=android --project-name orbit_hopper --org com.kshanlvs
       - run: flutter pub get
       - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        id: analyze
+        run: |
+          set +e
+          flutter analyze --no-fatal-infos --no-fatal-warnings > analyze.txt 2>&1
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          grep -E "^\s*(error|warning)" analyze.txt | head -120 > analyze_short.txt
+          msg=$(sed -e 's/%/%25/g' analyze_short.txt | sed ':a;N;$!ba;s/\n/%0A/g')
+          if [ -s analyze_short.txt ]; then echo "::warning title=analyze::$msg"; fi
+          tail -3 analyze.txt
+          exit 0
       - name: Test
-        run: flutter test
+        id: test
+        run: |
+          set +e
+          flutter test > test.txt 2>&1
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          grep -vE "^\s*$" test.txt | grep -E "STAT|\[E\]|Error|error|Expected|Actual|failed|Some tests|All tests|\.dart" | head -150 > test_short.txt
+          msg=$(sed -e 's/%/%25/g' test_short.txt | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=tests::$msg"
+          exit 0
       - name: Build debug APK
-        run: flutter build apk --debug
+        id: apk
+        if: steps.analyze.outputs.code == '0'
+        run: |
+          set +e
+          flutter build apk --debug > build.txt 2>&1
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          msg=$(tail -40 build.txt | sed -e 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          if [ $code -ne 0 ]; then echo "::warning title=build::$msg"; fi
+          exit 0
       - uses: actions/upload-artifact@v4
+        if: steps.apk.outputs.code == '0'
         with:
           name: app-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+      - name: Result
+        run: |
+          echo "analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}"
+          echo "::notice title=result::analyze=${{ steps.analyze.outputs.code }} test=${{ steps.test.outputs.code }} apk=${{ steps.apk.outputs.code }}"
+          test "${{ steps.analyze.outputs.code }}" = "0" && test "${{ steps.test.outputs.code }}" = "0" && test "${{ steps.apk.outputs.code }}" = "0"
