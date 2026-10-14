@@ -34,18 +34,6 @@ You are a comet starting at the Sun. **Tap** to fly off on a tangent and get cau
 - **Performance:** every planet, glow and label is drawn once into a cached image and then just blitted, with no blurs per frame, stars batched into a few draw calls, and region skies pre-rendered.
 - **Effects:** particles, shockwaves, screen shake, gold flashes, haptics, a parallax starfield and an aim guide for the first jumps.
 
-## Second game: Black Hole — Eat the Universe
-
-You are a black hole just 2 mm across. Drag anywhere to move (a virtual joystick appears under your finger). Swallow anything smaller than you to grow, and avoid anything bigger: a red ring hurts and knocks a chunk off you, and a pulsing red ring is more than twice your size and swallows you. You grow through 16 real size stages (space dust, pebbles, meteoroids, satellites, asteroids, comets, moons, planets, giant planets, stars, giant stars, nebulae and clusters, galaxies, galaxy clusters, the cosmic web), then into endless imaginary "other universes".
-
-- The camera zooms out as you grow, and the HUD always shows your real size with a comparison ("1.2 km, bigger than the Eiffel Tower").
-- Each new stage shows a card with a true fact about the things you can now eat.
-- Hawking radiation: your black hole slowly evaporates, faster when it's small (as in real physics), so you have to keep eating. The screen edges glow purple when you're starving.
-- The first 25 seconds have nothing lethal, so new players can learn. After that, danger rises with your size.
-- Your biggest size is saved, and runs earn shared stardust.
-
-Logic lives in `lib/hole/logic/` (pure Dart, unit-tested in `test/hole_test.dart`), and the Flame game is `lib/hole/hole_game.dart`.
-
 ## Run it
 
 ```bash

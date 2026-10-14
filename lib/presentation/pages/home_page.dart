@@ -11,7 +11,6 @@ import '../../domain/entities/comet_skin.dart';
 import '../../domain/entities/player_progress.dart';
 import '../../game/audio/game_audio.dart';
 import '../../game/logic/cosmos.dart';
-import '../../hole/logic/size_scale.dart';
 import '../../game/render/sprites.dart';
 import '../../game/render/starfield.dart';
 import '../progress/progress_cubit.dart';
@@ -211,14 +210,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   onTap: () => context.push(AppRoutes.defense),
                 ),
                 _ModeTile(
-                  title: 'BLACK HOLE',
-                  subtitle: progress.holeBestRadius > 0
-                      ? 'BEST ${formatLength(progress.holeBestRadius * 2)}'
-                      : 'EAT THE UNIVERSE',
-                  icon: Icons.blur_circular_rounded,
-                  color: const Color(0xFFB57CFF),
-                  badge: progress.holeBestRadius > 0 ? null : 'NEW',
-                  onTap: () => context.push(AppRoutes.hole),
+                  title: 'NEON SHIFT',
+                  subtitle: 'NEW ARCADE GAME',
+                  icon: Icons.bolt_rounded,
+                  color: const Color(0xFFFF3DCB),
+                  badge: 'NEW',
+                  onTap: () => context.push(AppRoutes.neon),
                 ),
               ],
             ),
