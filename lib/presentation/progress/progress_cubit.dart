@@ -72,18 +72,6 @@ class ProgressCubit extends Cubit<PlayerProgress> {
     return reward;
   }
 
-  /// Black Hole run finished. Returns true if it was the biggest ever.
-  Future<bool> recordHoleRun({required double maxRadius, required int stardustEarned}) async {
-    final isNewBest = maxRadius > state.holeBestRadius;
-    final next = state.copyWith(
-      holeBestRadius: math.max(maxRadius, state.holeBestRadius),
-      stardust: state.stardust + stardustEarned,
-    );
-    emit(next);
-    await _repository.save(next);
-    return isNewBest;
-  }
-
   /// Furthest real place ever discovered (journey index).
   int get furthestDiscovered {
     var best = 0;

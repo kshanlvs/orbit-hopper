@@ -226,6 +226,18 @@ class GameWorld {
     comet.velocity = len == 0 ? v : v / len * comet.speed;
     comet.position += comet.velocity * dt;
 
+    // Ramming the killer asteroid comes first: if you touch it and a rock
+    // in the same frame, Earth is saved.
+    final def = defense;
+    final killer = def?.killer;
+    if (def != null && killer != null &&
+        (killer.position - comet.position).distance < cometRadius + KillerAsteroid.radius) {
+      def.killer = null;
+      def.won = true;
+      invulnerable = double.infinity; // nothing can hurt you after saving Earth
+      events.add(WorldEvent(WorldEventType.deflect, killer.position));
+    }
+
     // Moons and asteroids are deadly (unless shielded).
     for (final p in planets) {
       for (final m in p.moons) {
@@ -238,16 +250,6 @@ class GameWorld {
       if ((a.position - comet.position).distance < cometRadius + a.radius) {
         if (_hit(DeathCause.asteroid, a.position)) return;
       }
-    }
-
-    final def = defense;
-    final killer = def?.killer;
-    if (def != null && killer != null &&
-        (killer.position - comet.position).distance < cometRadius + KillerAsteroid.radius) {
-      def.killer = null;
-      def.won = true;
-      invulnerable = double.infinity; // nothing can hurt you after saving Earth
-      events.add(WorldEvent(WorldEventType.deflect, killer.position));
     }
 
     for (final s in shields) {
@@ -323,7 +325,8 @@ class GameWorld {
     final skipped = p.index - bestIndex; // jumping over planets pays extra
     final perfect = radialShare < perfectRadialLimit;
     combo = perfect ? combo + 1 : 0;
-    final points = skipped + (perfect ? math.min(combo, 5) : 0);
+    final int bonus = perfect ? math.min(combo, 5) : 0;
+    final points = skipped + bonus;
     final oldRegion = region;
     bestIndex = p.index;
     score += points;
@@ -396,14 +399,18 @@ class GameWorld {
     }
     final k = d.killer;
     if (k == null) return;
-    // Sways side to side as it hurtles toward Earth.
+    _swayKiller(d, k);
+    k.angle += dt * 0.8;
+    // Fell behind the camera? It slips ahead again — keep chasing.
+    if (k.position.dy > cameraY + height + 60) _spawnKiller();
+  }
+
+  /// Sways the killer side to side as it hurtles toward Earth.
+  void _swayKiller(DefenseState d, KillerAsteroid k) {
     final x = (k.base.dx + math.sin(d.timeLeft * 0.9 + k.phase) * k.sway)
         .clamp(KillerAsteroid.radius + 8, width - KillerAsteroid.radius - 8)
         .toDouble();
     k.position = Offset(x, k.base.dy);
-    k.angle += dt * 0.8;
-    // Fell behind the camera? It slips ahead again — keep chasing.
-    if (k.position.dy > cameraY + height + 60) _spawnKiller();
   }
 
   /// Places the killer asteroid in the first gap ahead (after the next
@@ -440,7 +447,9 @@ class GameWorld {
       if (spotSlack >= 0) break; // good enough — nearest clear gap wins
     }
     if (spot == null) return;
-    d.killer = KillerAsteroid(spot, _rngPhase(), sway: spotSlack.clamp(0.0, 45.0).toDouble());
+    final killer = KillerAsteroid(spot, _rngPhase(), sway: spotSlack.clamp(0.0, 45.0).toDouble());
+    _swayKiller(d, killer); // place it where it will be drawn, from frame one
+    d.killer = killer;
     // Clear debris near it so the intercept is fair.
     final y = spot.dy;
     asteroids.removeWhere((r) => (r.position.dy - y).abs() < 80);

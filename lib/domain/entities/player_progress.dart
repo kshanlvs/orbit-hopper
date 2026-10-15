@@ -15,7 +15,6 @@ class PlayerProgress {
     this.missionsCompleted = 0,
     this.defenseLevel = 1,
     this.earthsSaved = 0,
-    this.holeBestRadius = 0,
   });
 
   factory PlayerProgress.initial() => const PlayerProgress(
@@ -49,9 +48,6 @@ class PlayerProgress {
   final int defenseLevel;
   final int earthsSaved;
 
-  /// Black Hole game: biggest radius ever reached, in metres.
-  final double holeBestRadius;
-
   PlayerProgress copyWith({
     int? bestScore,
     int? stardust,
@@ -66,7 +62,6 @@ class PlayerProgress {
     int? missionsCompleted,
     int? defenseLevel,
     int? earthsSaved,
-    double? holeBestRadius,
   }) {
     return PlayerProgress(
       bestScore: bestScore ?? this.bestScore,
@@ -82,7 +77,6 @@ class PlayerProgress {
       missionsCompleted: missionsCompleted ?? this.missionsCompleted,
       defenseLevel: defenseLevel ?? this.defenseLevel,
       earthsSaved: earthsSaved ?? this.earthsSaved,
-      holeBestRadius: holeBestRadius ?? this.holeBestRadius,
     );
   }
 }
